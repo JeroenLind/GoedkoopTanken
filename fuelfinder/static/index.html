@@ -604,8 +604,15 @@ function usablePlaces() {   // alleen rijen die als bestemming kunnen dienen
   return collectPlaces().filter((p) => p.name.trim() && (p.address.trim() || (p.lat.trim() && p.lon.trim())));
 }
 function defaultPlace() { const l = usablePlaces(); return l.find((p) => p.name.trim().toLowerCase() === "werk") || l[0] || null; }
+function pickList() {       // het ingestelde thuisadres eerst, daarna de vaste adressen
+  const list = usablePlaces();
+  const home = { name: "Thuis", address: $("address").value, lat: $("lat").value, lon: $("lon").value };
+  const hasHome = (home.address.trim() || (home.lat.trim() && home.lon.trim()))
+    && !list.some((p) => p.name.trim().toLowerCase() === "thuis");   // een eigen adres "Thuis" gaat voor
+  return hasHome ? [home, ...list] : list;
+}
 function refreshPlacePick() {
-  const sel = $("placepick"), list = usablePlaces();
+  const sel = $("placepick"), list = pickList();
   sel.replaceChildren(h("option", { value: "" }, "Vaste adressen"), ...list.map((p, i) => h("option", { value: String(i) }, p.name.trim())));
   sel.hidden = !list.length;
 }
@@ -748,7 +755,7 @@ function setMode(m, persist = true) {
 $("mode-around").addEventListener("click", () => setMode("around"));
 $("mode-route").addEventListener("click", () => setMode("route"));
 $("placepick").addEventListener("change", () => {
-  const p = usablePlaces()[Number($("placepick").value)];
+  const p = pickList()[Number($("placepick").value)];
   $("placepick").value = "";
   if (p) usePlace(p);
 });
