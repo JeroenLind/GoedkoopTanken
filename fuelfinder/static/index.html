@@ -89,7 +89,7 @@
   .srcrow { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
   .hint.ok { color: var(--gain); }
   .placerow { border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin: 0 0 10px; }
-  .placerow > .btn { margin-top: 2px; }
+  .placerow > .row { margin-top: 2px; }
   .btn.primary { background: var(--ink); color: var(--paper); font: 600 1.1rem/1 var(--display);
     padding: 13px 16px; width: 100%; letter-spacing: .02em; }
   .btn.primary:hover { background: var(--ink); filter: brightness(1.15); }
@@ -377,8 +377,8 @@
   </div>
 </aside>
 
-<dialog id="mapdlg" aria-label="Bestemming kiezen op de kaart">
-  <div class="maphead"><strong>Kies je bestemming op de kaart</strong>
+<dialog id="mapdlg" aria-labelledby="maptitle">
+  <div class="maphead"><strong id="maptitle">Kies je bestemming op de kaart</strong>
     <button type="button" class="btn" id="mapclose">Sluiten</button></div>
   <p class="maphint" id="maphint">Klik of tik op de kaart. Met slepen en zoomen vind je de plek.</p>
   <div id="map" role="application" aria-label="Kaart"></div>
@@ -551,6 +551,7 @@ for (const btn of document.querySelectorAll("[data-test]")) {
 function placeRow(p = {}) {
   const inp = (cls, ph, val, extra) => h("input", { type: "text", class: cls, placeholder: ph, value: val ?? "", ...extra });
   const hintEl = h("p", { class: "hint" });
+  const name = inp("p-name", "Bv. Werk", p.name, { maxlength: "40" });
   const addr = inp("p-address", "Straat 1, Plaats", p.address);
   const lat = inp("p-lat", "", p.lat, { inputmode: "decimal" }), lon = inp("p-lon", "", p.lon, { inputmode: "decimal" });
   const find = h("button", { type: "button", class: "btn" }, "Zoek");
@@ -563,13 +564,33 @@ function placeRow(p = {}) {
     } catch (e) { hintEl.textContent = e.message; hintEl.classList.add("err"); }
   });
   const del = h("button", { type: "button", class: "btn", "aria-label": "Dit adres verwijderen" }, "Verwijder");
+  const onmap = h("button", { type: "button", class: "btn" }, "Kies op kaart");
+  onmap.hidden = !hasMap;
+  onmap.addEventListener("click", () => {
+    const la = parseFloat(String(lat.value).replace(",", ".")), lo = parseFloat(String(lon.value).replace(",", "."));
+    setMenu(false);              // het menu sluit; de kaart opent daarna bovenop de pagina
+    openMap({
+      title: "Kies de plek van dit vaste adres" + (name.value.trim() ? ` (${name.value.trim()})` : ""),
+      startLabel: "Huidige locatie",
+      initial: isFinite(la) && isFinite(lo) ? [la, lo] : null,
+      onPick: (p) => {
+        lat.value = p.lat.toFixed(6); lon.value = p.lon.toFixed(6);
+        const had = addr.value.trim();
+        if (!had) addr.value = p.label;
+        hintEl.classList.remove("err");
+        hintEl.textContent = "Gekozen op de kaart: " + p.label + (had ? ". Het ingevulde adres is niet aangepast." : "");
+        setDirty(true); refreshPlacePick();
+      },
+      focus: () => setMenu(true),
+    });
+  });
   const row = h("div", { class: "placerow" },
-    h("label", { class: "field" }, h("span", null, "Naam"), inp("p-name", "Bv. Werk", p.name, { maxlength: "40" })),
+    h("label", { class: "field" }, h("span", null, "Naam"), name),
     h("label", { class: "field" }, h("span", null, "Adres"), h("div", { class: "row" }, addr, find)),
     h("div", { class: "pair" },
       h("label", { class: "field" }, h("span", null, "Breedtegraad"), lat),
       h("label", { class: "field" }, h("span", null, "Lengtegraad"), lon)),
-    hintEl, del);
+    hintEl, h("div", { class: "row" }, onmap, del));
   del.addEventListener("click", () => { row.remove(); setDirty(true); refreshPlacePick(); });
   return row;
 }
@@ -758,7 +779,11 @@ function pickPoint(lat, lon) {
   }).catch(() => { /* coördinaten blijven als label */ });
 }
 
-function openMap() {
+let mapOpts = null;   // wat er met de gekozen plek gebeurt: { title, initial: [lat, lon] | null, onPick(p), focus }
+
+function openMap(opts) {
+  mapOpts = opts;
+  $("maptitle").textContent = opts.title;
   const dlg = $("mapdlg");
   dlg.showModal();
   if (!map) {
@@ -774,18 +799,23 @@ function openMap() {
   const num = (v) => { const n = parseFloat(String(v).replace(",", ".")); return isFinite(n) ? n : null; };
   const start = loc.lat != null ? [loc.lat, loc.lon] : (num($("lat").value) != null && num($("lon").value) != null ? [num($("lat").value), num($("lon").value)] : null);
   if (start) startDot = L.circleMarker(start, { radius: 7, weight: 3, color: "#17212b", fillColor: "#f5c518", fillOpacity: 1 })
-    .bindTooltip("Vertrek").addTo(map);
-  if (dest.lat != null) { map.setView([dest.lat, dest.lon], 13); pickPoint(dest.lat, dest.lon); }
+    .bindTooltip(opts.startLabel || "Vertrek").addTo(map);
+  if (opts.initial) { map.setView(opts.initial, 13); pickPoint(opts.initial[0], opts.initial[1]); }
   else if (start) map.setView(start, 11);
   else map.setView([52.1, 5.3], 7);
 }
-$("pickmap").addEventListener("click", openMap);
+$("pickmap").addEventListener("click", () => openMap({
+  title: "Kies je bestemming op de kaart",
+  initial: dest.lat != null ? [dest.lat, dest.lon] : null,
+  onPick: (p) => { setDest({ lat: p.lat, lon: p.lon, label: p.label, source: "map" }, "Gekozen op de kaart."); },
+  focus: () => $("dest").focus({ preventScroll: true }),
+}));
 $("mapclose").addEventListener("click", () => $("mapdlg").close());
 $("mapok").addEventListener("click", () => {
-  if (!picked) return;
-  setDest({ lat: picked.lat, lon: picked.lon, label: picked.label, source: "map" }, "Gekozen op de kaart.");
+  if (!picked || !mapOpts) return;
+  mapOpts.onPick(picked);
   $("mapdlg").close();
-  $("dest").focus({ preventScroll: true });
+  if (mapOpts.focus) mapOpts.focus();
 });
 
 /* ================= berekenen ================= */
