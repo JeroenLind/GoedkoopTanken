@@ -1,0 +1,7 @@
+# De add-on draait in Linux: deze bestanden moeten altijd LF-regeleinden houden (ook op Windows),
+# anders breekt bijvoorbeeld de shebang van de startscripts.
+* text=auto
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yaml text eol=lf
+goedkoop-tanken/rootfs/** text eol=lf
