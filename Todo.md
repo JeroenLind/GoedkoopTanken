@@ -2,4 +2,4 @@
 - Bij een route maximaal te rijden afstand in vullen (i.v.m. bijna lege tank)
 - Foutmelding van tankerKoning onderzoeken: 
   - Let op Bron tankerkoenig was niet bereikbaar (creativecommons.tankerkoenig.de: The read operation timed out); gegevens van 24 uur geleden gebruikt.
-  - ! Per bron een test knop toevoegen om de verbinding en API key te controleren
+  - ~~! Per bron een test knop toevoegen om de verbinding en API key te controleren~~ (klaar)
