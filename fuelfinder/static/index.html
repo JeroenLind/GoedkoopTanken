@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fuelfinder</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>
+  :root {
+    --ink: #17212b;          /* asfalt */
+    --ink-soft: #55626f;
+    --paper: #eef0ec;        /* koel grijs papier */
+    --panel: #e3e6e0;
+    --surface: #fafaf7;
+    --line: #c9cec6;
+    --sign: #f5c518;         /* wegbordgeel: alleen voor de winnaar */
+    --sign-tint: #fbefb8;
+    --gain: #17724a;
+    --loss: #b4432d;
+    --focus: #1d5fd1;
+    --display: Bahnschrift, "DIN Alternate", "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+    --text: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8ece6; --ink-soft: #9aa6a0; --paper: #10161c; --panel: #172029;
+      --surface: #1b252f; --line: #2c3945; --sign: #f5c518; --sign-tint: #3a3410;
+      --gain: #5fcf9a; --loss: #f08a72; --focus: #7fb0ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 var(--text); }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .page { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 36px) 60px; }
+
+  /* ---------- kop met menuknop ---------- */
+  .top { display: flex; align-items: center; gap: 12px; padding: 14px 0 10px; }
+  .menubtn { position: relative; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer;
+    border: 1px solid var(--ink); border-radius: 4px; background: transparent; padding: 0; }
+  .menubtn:hover { background: var(--surface); }
+  .menubtn svg { width: 22px; height: 22px; }
+  .menubtn .dot { position: absolute; top: 5px; right: 5px; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--loss); }
+  .brand { font: 700 1.6rem/1 var(--display); letter-spacing: .01em; margin: 0; }
+
+  /* ---------- altijd zichtbaar: locatie, liters, bereken ---------- */
+  .bar { display: grid; grid-template-columns: minmax(0, 1fr) 120px 170px; gap: 12px 14px; align-items: end;
+    padding: 14px 0 6px; border-top: 2px solid var(--ink); }
+  .bar label > span { display: block; font-size: .85rem; color: var(--ink-soft); margin-bottom: 3px; }
+  .bar input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+  .bar .locrow { display: flex; gap: 8px; }
+  .bar .locrow input { flex: 1; min-width: 0; }
+  .status { grid-column: 1 / -1; margin: 0; font-size: .85rem; color: var(--ink-soft); min-height: 1.3em; }
+  .status.err { color: var(--loss); }
+
+  .modes { grid-column: 1 / -1; display: inline-flex; justify-self: start; border: 1px solid var(--ink); border-radius: 4px;
+    overflow: hidden; }
+  .modes button { border: 0; background: transparent; padding: 7px 14px; cursor: pointer; font-weight: 500; }
+  .modes button + button { border-left: 1px solid var(--ink); }
+  .modes button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .modes button:not([aria-pressed="true"]):hover { background: var(--surface); }
+  .bar > .locfield { grid-row: 2; grid-column: 1; }
+  .bar > .destfield { grid-row: 3; grid-column: 1; }
+  .bar > .litersfield { grid-row: 2; grid-column: 2; }
+  .bar > .runcell { grid-row: 2; grid-column: 3; }
+  .bar .status + .status { margin-top: -6px; }
+  #navnote { padding: 2px 12px 6px; max-width: 24ch; font-size: .78rem; color: var(--ink-soft); }
+  /* kaart om een bestemming te kiezen */
+  #mapdlg { width: min(920px, 96vw); height: min(680px, 92vh); padding: 0; border: 1px solid var(--ink); border-radius: 6px;
+    background: var(--paper); color: var(--ink); }
+  #mapdlg[open] { display: flex; flex-direction: column; }
+  #mapdlg::backdrop { background: rgba(10, 16, 22, .55); }
+  .maphead, .mapfoot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; }
+  .maphead { border-bottom: 1px solid var(--line); }
+  .mapfoot { border-top: 1px solid var(--line); }
+  .maphead strong { font: 700 1.15rem/1 var(--display); }
+  #map { flex: 1; min-height: 280px; background: var(--panel); }
+  #maplabel { font-size: .9rem; color: var(--ink-soft); min-width: 0; overflow-wrap: anywhere; }
+  .maphint { margin: 0; padding: 6px 14px; font-size: .85rem; color: var(--ink-soft); }
+  @media (max-width: 700px) { #mapdlg { width: 100vw; height: 100dvh; max-width: none; max-height: none; border-radius: 0; } }
+  .btn { border: 1px solid var(--ink); background: transparent; border-radius: 4px; padding: 8px 12px;
+    cursor: pointer; white-space: nowrap; }
+  .btn:hover { background: var(--surface); }
+  #placepick { border: 1px solid var(--ink); background: transparent; border-radius: 4px; padding: 8px 6px; max-width: 9.5rem; }
+  .placerow { border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin: 0 0 10px; }
+  .placerow > .btn { margin-top: 2px; }
+  .btn.primary { background: var(--ink); color: var(--paper); font: 600 1.1rem/1 var(--display);
+    padding: 13px 16px; width: 100%; letter-spacing: .02em; }
+  .btn.primary:hover { background: var(--ink); filter: brightness(1.15); }
+  .btn[disabled] { opacity: .6; cursor: progress; }
+
+  /* ---------- uitschuifpaneel met instellingen ---------- */
+  .scrim { position: fixed; inset: 0; background: rgba(10, 16, 22, .45); opacity: 0; pointer-events: none;
+    transition: opacity .18s ease; z-index: 20; }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; bottom: 0; left: 0; width: min(390px, 92vw); z-index: 30; background: var(--panel);
+    border-right: 1px solid var(--line); transform: translateX(-102%); transition: transform .18s ease, visibility 0s linear .18s;
+    display: flex; flex-direction: column; box-shadow: 4px 0 24px rgba(0,0,0,.2); visibility: hidden; }
+  .drawer.open { transform: none; visibility: visible; transition: transform .18s ease, visibility 0s; }
+  @media (prefers-reduced-motion: reduce) { .drawer, .scrim { transition: none; } }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px;
+    border-bottom: 1px solid var(--line); }
+  .drawer-head h2 { font: 700 1.3rem/1 var(--display); margin: 0; }
+  .drawer-body { overflow-y: auto; padding: 0 20px; flex: 1; }
+  .group { border-top: 1px solid var(--line); padding: 14px 0 6px; }
+  .group:first-child { border-top: 0; }
+  .group h3 { font: 600 1.05rem/1.2 var(--display); margin: 0 0 10px; }
+  .field { display: block; margin: 0 0 12px; }
+  .field > span { display: block; font-size: .85rem; color: var(--ink-soft); margin-bottom: 3px; }
+  .field input[type=text], .field input[type=password], .field select {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+  .row { display: flex; gap: 8px; align-items: stretch; }
+  .row > * { min-width: 0; }
+  .row .grow { flex: 1; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hint { font-size: .82rem; color: var(--ink-soft); margin: -6px 0 12px; min-height: 1.2em; }
+  .hint.err { color: var(--loss); }
+  .check { display: flex; gap: 8px; align-items: center; margin: 0 0 8px; }
+  .check input { width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
+  .drawer-foot { padding: 12px 20px 16px; border-top: 1px solid var(--line); display: flex; gap: 10px;
+    align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .save-state { font-size: .82rem; color: var(--ink-soft); }
+  .save-state.dirty { color: var(--loss); }
+  .cfgpath { font-size: .75rem; color: var(--ink-soft); word-break: break-all; padding: 4px 0 14px; }
+
+  /* ---------- resultaten ---------- */
+  main { padding-top: 22px; min-width: 0; }
+  .verdict { font: 600 clamp(1.5rem, 3.2vw, 2.3rem)/1.2 var(--display); margin: 0 0 10px; max-width: 28ch; }
+  .verdict-sub { margin: 0 0 22px; max-width: 62ch; color: var(--ink-soft); font-size: 1.05rem; }
+  .context { margin: 0 0 18px; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 22px;
+    font-size: .92rem; color: var(--ink-soft); }
+  .context b { color: var(--ink); font-weight: 600; }
+
+  .tablewrap { overflow-x: auto; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+  table { border-collapse: collapse; width: 100%; min-width: 760px; font-variant-numeric: tabular-nums; }
+  th { font: 600 .82rem/1.2 var(--text); text-align: right; color: var(--ink-soft); padding: 10px 7px 8px;
+    border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td { padding: 10px 7px; text-align: right; border-bottom: 1px solid var(--line); vertical-align: top; white-space: nowrap; }
+  th.l, td.l { text-align: left; }
+  td.rank { color: var(--ink-soft); width: 2.2em; }
+  td.station { white-space: normal; min-width: 170px; }
+  .sname { font-weight: 600; }
+  .sub { display: block; font-size: .82rem; color: var(--ink-soft); font-weight: 400; }
+  .tag { display: inline-block; margin-left: 8px; padding: 0 7px; border: 1px solid var(--ink-soft);
+    border-radius: 99px; font-size: .74rem; font-weight: 500; color: var(--ink-soft); vertical-align: 1px; }
+  tr.best td { background: var(--sign-tint); border-bottom-color: var(--sign); }
+  tr.best td.rank { box-shadow: inset 6px 0 0 var(--sign); color: var(--ink); font-weight: 700; }
+  td.total { font-weight: 700; }
+  .gain { color: var(--gain); font-weight: 600; }
+  .loss { color: var(--loss); }
+  .navbtn { padding: 4px 10px; font-size: .88rem; }
+  a.btn { display: inline-block; text-decoration: none; color: inherit; }
+  .resmap { height: 400px; margin: 0 0 6px; border: 1px solid var(--line); border-radius: 4px; position: relative;
+    z-index: 0; isolation: isolate; background: var(--panel); }
+  .mapnote { margin: 0 0 18px; font-size: .88rem; color: var(--ink-soft); min-height: 1.3em; }
+  .pin { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #fafaf7;
+    color: #17212b; border: 2px solid #17212b; font: 700 .85rem/1 var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .pin.best { background: #f5c518; }
+  .pin.base { border-style: dashed; }
+  .pin.sel { box-shadow: 0 0 0 4px rgba(29,95,209,.55), 0 1px 4px rgba(0,0,0,.35); transform: scale(1.12); }
+  tbody tr[tabindex] { cursor: pointer; }
+  tr.sel td { background-image: linear-gradient(rgba(29,95,209,.12), rgba(29,95,209,.12)); }
+  .sub.src { margin-top: 1px; }
+  .detail { margin: 0 0 18px; border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 12px 16px 10px; }
+  .detail h3 { font: 600 1.1rem/1.3 var(--display); margin: 0 0 8px; }
+  .detail h3 .tag { font-family: var(--text); }
+  .detail table { min-width: 0; width: 100%; }
+  .detail td { text-align: left; white-space: normal; border: 0; border-top: 1px solid var(--line); padding: 6px 10px 6px 0; }
+  .detail tr:first-child td { border-top: 0; }
+  .detail td.calc { color: var(--ink-soft); }
+  .detail td.amt { text-align: right; white-space: nowrap; font-weight: 600; padding-right: 0; }
+  .detail tr.sum td { border-top: 2px solid var(--ink); font-weight: 700; }
+  .detail .fine { margin: 8px 0 0; font-size: .82rem; color: var(--ink-soft); }
+  @media (max-width: 700px) { .detail td { display: block; padding: 2px 0; border: 0; } .detail td.amt { text-align: left; }
+    .detail tr { display: block; padding: 6px 0; border-top: 1px solid var(--line); } .detail tr:first-child { border-top: 0; } }
+  .maptip .sub { font-size: .85em; opacity: .75; }
+  @media (max-width: 700px) { .resmap { height: 300px; } }
+  #navmenu { position: fixed; inset: auto; margin: 0; padding: 6px; min-width: 170px; border: 1px solid var(--ink);
+    border-radius: 6px; background: var(--surface); color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  #navmenu a { display: block; padding: 9px 12px; border-radius: 4px; color: inherit; text-decoration: none; }
+  #navmenu a:hover, #navmenu a:focus-visible { background: var(--sign-tint); }
+  #navmenu .navtitle { padding: 4px 12px 6px; font-size: .8rem; color: var(--ink-soft); }
+  .gap td { text-align: center; color: var(--ink-soft); padding: 4px; border-bottom-style: dashed; }
+  .legend { margin: 14px 0 0; font-size: .85rem; color: var(--ink-soft); max-width: 90ch; }
+  .legend p { margin: 0 0 6px; }
+
+  .notes { margin-top: 26px; font-size: .88rem; color: var(--ink-soft); }
+  .notes h3 { font: 600 .98rem/1.2 var(--display); color: var(--ink); margin: 0 0 6px; }
+  .notes ul { margin: 0 0 12px; padding-left: 18px; }
+  .warn { border-left: 4px solid var(--loss); background: var(--surface); padding: 10px 14px; margin: 0 0 18px; max-width: 80ch; }
+  .warn strong { display: block; margin-bottom: 2px; }
+
+  .empty { max-width: 52ch; margin-top: 5vh; }
+  .empty h2 { font: 600 clamp(1.5rem, 3vw, 2.1rem)/1.2 var(--display); margin: 0 0 10px; }
+  .empty p { color: var(--ink-soft); margin: 0 0 8px; }
+  .busy { display: flex; gap: 14px; align-items: center; margin-top: 5vh; color: var(--ink-soft); }
+  .spin { width: 22px; height: 22px; border: 3px solid var(--line); border-top-color: var(--ink);
+    border-radius: 50%; animation: spin 0.9s linear infinite; flex: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } }
+
+  @media (max-width: 700px) {
+    .bar { grid-template-columns: minmax(0, 1fr) 110px; }
+    .bar .locfield, .bar .destfield { grid-column: 1 / -1; }
+    .bar .runcell { align-self: end; }
+    .bar .locrow { flex-wrap: wrap; }
+    .bar .locrow input { flex-basis: 100%; }
+    .bar > * { grid-row: auto !important; }
+    .bar .litersfield { grid-column: 1; }
+    .bar .runcell { grid-column: 2; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <button type="button" class="menubtn" id="menubtn" aria-label="Instellingen openen" aria-expanded="false" aria-controls="drawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <span class="dot" id="menudot" hidden></span>
+    </button>
+    <h1 class="brand">fuelfinder</h1>
+  </header>
+
+  <form class="bar" id="bar" autocomplete="off">
+    <div class="modes" role="group" aria-label="Zoeken">
+      <button type="button" id="mode-around" aria-pressed="true">Rondom mij</button>
+      <button type="button" id="mode-route" aria-pressed="false">Langs een route</button>
+    </div>
+    <label class="locfield"><span id="loclabel">Huidige locatie</span>
+      <div class="locrow">
+        <input type="text" id="loc" placeholder="Adres of plaats" aria-describedby="locstatus">
+        <button type="button" class="btn" id="locate">Mijn locatie</button>
+        <button type="button" class="btn" id="gohome" hidden>Thuis</button>
+      </div>
+    </label>
+    <label class="destfield" id="destfield" hidden><span>Bestemming</span>
+      <div class="locrow">
+        <input type="text" id="dest" placeholder="Adres of plaats" aria-describedby="deststatus">
+        <button type="button" class="btn" id="pickmap" hidden>Kaart</button>
+        <select id="placepick" aria-label="Vast adres als bestemming" hidden><option value="">Vaste adressen</option></select>
+        <button type="button" class="btn" id="swap" title="Vertrek en bestemming omwisselen">Omdraaien</button>
+      </div>
+    </label>
+    <label class="litersfield"><span>Liters tanken</span><input type="text" id="fill" inputmode="decimal"></label>
+    <div class="runcell"><button type="submit" class="btn primary" id="run">Bereken</button></div>
+    <p class="status" id="locstatus" role="status"></p>
+    <p class="status" id="deststatus" role="status" hidden></p>
+  </form>
+
+  <main id="main" aria-live="polite">
+    <div class="empty">
+      <h2>Nog geen berekening</h2>
+      <p>Controleer je locatie en het aantal liters en kies Bereken.</p>
+      <p>Het programma haalt de prijzen op, berekent per station de rit heen en terug en zet
+        tanken en omrit bij elkaar op volgorde. Auto, bronnen en andere instellingen staan achter de menuknop.</p>
+    </div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Instellingen" inert>
+  <div class="drawer-head">
+    <h2>Instellingen</h2>
+    <button type="button" class="btn" id="closemenu">Sluiten</button>
+  </div>
+  <form class="drawer-body" id="form" autocomplete="off">
+    <section class="group">
+      <h3>Thuis</h3>
+      <label class="field"><span>Adres</span>
+        <div class="row">
+          <input class="grow" type="text" id="address" placeholder="Straat 1, Plaats">
+          <button type="button" class="btn" id="geocode">Zoek</button>
+        </div>
+      </label>
+      <div class="pair">
+        <label class="field"><span>Breedtegraad</span><input type="text" id="lat" inputmode="decimal"></label>
+        <label class="field"><span>Lengtegraad</span><input type="text" id="lon" inputmode="decimal"></label>
+      </div>
+      <p class="hint" id="home-hint">Wordt gebruikt voor de knop Thuis, en als je locatie niet bepaald kan worden.</p>
+      <div id="ha-group" hidden>
+        <label class="field"><span>Telefoon-tracker in Home Assistant</span>
+          <select id="ha-tracker"><option value="">Geen (gebruik de browser)</option></select></label>
+        <p class="hint">Mijn locatie gebruikt dan de laatst bekende locatie van deze tracker, en valt terug op de browser als dat niet lukt.</p>
+      </div>
+      <label class="check"><input type="checkbox" id="autolocate"> Locatie opzoeken bij openen</label>
+      <p class="hint">Deze keuze geldt alleen voor deze browser.</p>
+    </section>
+
+    <section class="group">
+      <h3>Vaste adressen</h3>
+      <p class="hint">Bijvoorbeeld Werk, school of familie. Bij Langs een route kies je ze als bestemming. De naam <b>Werk</b> geldt als standaardbestemming.</p>
+      <div id="places"></div>
+      <button type="button" class="btn" id="addplace">Adres toevoegen</button>
+    </section>
+
+    <section class="group">
+      <h3>Auto</h3>
+      <label class="field"><span>Kenteken</span>
+        <div class="row">
+          <input class="grow" type="text" id="plate" placeholder="AB-123-C">
+          <button type="button" class="btn" id="lookup">Opzoeken</button>
+        </div>
+      </label>
+      <p class="hint" id="car-hint">Brandstof en verbruik komen uit de RDW-gegevens.</p>
+      <label class="field"><span>Brandstof</span>
+        <select id="fuel">
+          <option value="">Automatisch (via kenteken)</option>
+          <option value="petrol95">Benzine 95</option>
+          <option value="petrol98">Benzine 98</option>
+          <option value="diesel">Diesel</option>
+          <option value="lpg">LPG</option>
+        </select>
+      </label>
+      <div class="pair">
+        <label class="field"><span>Eigen verbruik (l/100 km)</span>
+          <input type="text" id="consumption" inputmode="decimal" placeholder="uit kenteken"></label>
+        <label class="field"><span>Praktijkfactor</span>
+          <input type="text" id="factor" inputmode="decimal"></label>
+      </div>
+      <p class="hint">De factor verhoogt het officiële verbruik van de RDW. Een eigen verbruik wordt niet gecorrigeerd.</p>
+    </section>
+
+    <section class="group">
+      <h3>Zoeken</h3>
+      <label class="check"><input type="checkbox" id="resmap-on"> Kaart bij de resultaten tonen</label>
+      <p class="hint">Deze keuze geldt alleen voor deze browser. De kaartbeelden komen van openstreetmap.org.</p>
+      <div class="pair">
+        <label class="field"><span>Zoekstraal (km)</span><input type="text" id="radius" inputmode="decimal"></label>
+        <label class="field"><span>Max. extra tijd (min)</span><input type="text" id="maxextra" inputmode="numeric"></label>
+        <label class="field"><span>Aantal resultaten</span><input type="text" id="maxresults" inputmode="numeric"></label>
+      </div>
+      <p class="hint">Zoekstraal geldt rondom een locatie. Extra tijd is dan gemeten ten opzichte van het dichtstbijzijnde
+        station; langs een route is het de omweg zelf, en bepaalt het ook hoe breed er naast de route gezocht wordt. 0 = geen limiet.</p>
+    </section>
+
+    <section class="group">
+      <h3>Bronnen</h3>
+      <label class="check"><input type="checkbox" id="p-tankerkoenig"> Tankerkönig (Duitsland)</label>
+      <label class="check"><input type="checkbox" id="p-anwb"> ANWB Onderweg (Nederland, België, Duitsland)</label>
+      <p class="hint">ANWB Onderweg is geen officiële, gedocumenteerde bron. Die kan zonder bericht veranderen of wegvallen, en is niet door de ANWB goedgekeurd voor dit gebruik. Gebruik is op eigen risico; zet de bron uit als je dat liever niet wilt.</p>
+      <label class="field"><span>Tankerkönig API-key</span>
+        <input type="password" id="tkkey" autocomplete="new-password"></label>
+      <p class="hint" id="key-hint"></p>
+      <label class="check"><input type="checkbox" id="e10"> E10 meenemen bij Duitse prijzen</label>
+    </section>
+
+    <section class="group">
+      <h3>Cache</h3>
+      <label class="check"><input type="checkbox" id="cache-on"> Opgehaalde prijzen lokaal bewaren</label>
+      <label class="field"><span>Maximale leeftijd (uur)</span><input type="text" id="cache-hours" inputmode="decimal"></label>
+      <div class="row"><button type="button" class="btn" id="cache-clear">Cache wissen</button></div>
+      <p class="hint" id="cache-hint"></p>
+    </section>
+
+    <section class="group">
+      <h3>Routes</h3>
+      <label class="check"><input type="checkbox" id="routing"> Echte rijafstand en rijtijd gebruiken (OSRM)</label>
+      <label class="field"><span>OSRM-server</span><input type="text" id="osrm"></label>
+      <p class="hint">Zonder routering worden afstand en tijd geschat en met ~ gemarkeerd.</p>
+    </section>
+    <div class="cfgpath" id="cfgpath"></div>
+  </form>
+  <div class="drawer-foot">
+    <button type="button" class="btn" id="save">Instellingen opslaan</button>
+    <span class="save-state" id="save-state" role="status">Wijzigingen werken direct door bij Bereken.</span>
+  </div>
+</aside>
+
+<dialog id="mapdlg" aria-label="Bestemming kiezen op de kaart">
+  <div class="maphead"><strong>Kies je bestemming op de kaart</strong>
+    <button type="button" class="btn" id="mapclose">Sluiten</button></div>
+  <p class="maphint" id="maphint">Klik of tik op de kaart. Met slepen en zoomen vind je de plek.</p>
+  <div id="map" role="application" aria-label="Kaart"></div>
+  <div class="mapfoot"><span id="maplabel">Nog geen plek gekozen.</span>
+    <button type="button" class="btn primary" id="mapok" disabled style="width:auto">Kies deze plek</button></div>
+</dialog>
+
+<div id="navmenu" popover role="menu" aria-label="Navigeren met">
+  <div class="navtitle" id="navtitle"></div>
+  <div id="navnote" hidden></div>
+  <a role="menuitem" id="nav-google" target="_blank" rel="noopener noreferrer">Google Maps</a>
+  <a role="menuitem" id="nav-apple" target="_blank" rel="noopener noreferrer">Apple Maps</a>
+  <a role="menuitem" id="nav-waze" target="_blank" rel="noopener noreferrer">Waze</a>
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const nl = (n, d = 2) => n.toLocaleString("nl-NL", { minimumFractionDigits: d, maximumFractionDigits: d });
+const eur = (n) => "€ " + nl(n, 2);
+
+function h(tag, attrs, ...kids) {           // veilige DOM-bouwer: tekst gaat nooit als HTML erin
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === false || v == null) continue;
+    if (k === "class") el.className = v; else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return el;
+}
+
+async function api(path, body) {
+  const opts = body === undefined ? {} : {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+  let res;
+  try { res = await fetch(path, opts); }
+  catch { throw new Error("De fuelfinder-server reageert niet. Draait het terminalvenster nog?"); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Fout ${res.status}`);
+  return data;
+}
+
+const store = {                              // alleen voor kleine voorkeuren van deze browser
+  get(k, d) { try { const v = localStorage.getItem("ff." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("ff." + k, JSON.stringify(v)); } catch { /* geen opslag beschikbaar */ } },
+};
+
+/* ================= menu (uitschuifpaneel) ================= */
+const drawer = $("drawer"), scrim = $("scrim"), menubtn = $("menubtn");
+function setMenu(open) {
+  drawer.classList.toggle("open", open);
+  scrim.classList.toggle("show", open);
+  drawer.inert = !open;
+  $("main").inert = open; $("bar").inert = open;
+  menubtn.setAttribute("aria-expanded", String(open));
+  menubtn.setAttribute("aria-label", open ? "Instellingen sluiten" : "Instellingen openen");
+  if (open) { $("closemenu").focus({ preventScroll: true }); refreshCacheInfo(); }
+  else menubtn.focus({ preventScroll: true });
+}
+menubtn.addEventListener("click", () => setMenu(!drawer.classList.contains("open")));
+$("closemenu").addEventListener("click", () => setMenu(false));
+scrim.addEventListener("click", () => setMenu(false));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && drawer.classList.contains("open")) setMenu(false); });
+
+async function refreshCacheInfo() {
+  try {
+    const c = await api("api/cache");
+    $("cache-hint").textContent = c.areas === 0 ? "De cache is leeg."
+      : `${c.areas} ${c.areas === 1 ? "gebied" : "gebieden"} bewaard; nieuwste gegevens ${ageText(c.newest_age_min)} oud.`;
+  } catch { $("cache-hint").textContent = ""; }
+}
+function ageText(min) {
+  if (min == null) return "";
+  if (min < 1) return "minder dan 1 minuut";
+  if (min < 90) return `${min} min`;
+  const h = min / 60;
+  return h < 48 ? `${Math.round(h)} uur` : `${Math.round(h / 24)} dagen`;
+}
+$("cache-clear").addEventListener("click", async () => {
+  try { await api("api/cache/clear", {}); $("cache-hint").textContent = "Cache gewist. De volgende berekening haalt alles opnieuw op."; }
+  catch (e) { $("cache-hint").textContent = e.message; }
+});
+
+/* ================= instellingen <-> formulier ================= */
+let dirty = false;
+function setDirty(v, text) {
+  dirty = v;
+  const el = $("save-state");
+  el.textContent = text ?? (v ? "Niet opgeslagen. Werkt wel direct door bij Bereken." : "Opgeslagen.");
+  el.classList.toggle("dirty", v);
+  $("menudot").hidden = !v;
+}
+
+function fillForm(s) {
+  $("address").value = s.home.address || "";
+  $("lat").value = s.home.lat ?? "";
+  $("lon").value = s.home.lon ?? "";
+  renderPlaces(s.places || []);
+  $("plate").value = s.vehicle.plate || "";
+  $("fuel").value = s.vehicle.fuel || "";
+  $("consumption").value = s.vehicle.consumption_l_per_100km ?? "";
+  $("factor").value = s.vehicle.real_world_factor;
+  $("fill").value = s.search.fill_liters;
+  $("radius").value = s.search.radius_km;
+  $("maxextra").value = s.search.max_extra_min;
+  $("maxresults").value = s.search.max_results;
+  $("p-tankerkoenig").checked = s.providers.enabled.includes("tankerkoenig");
+  $("p-anwb").checked = s.providers.enabled.includes("anwb");
+  $("e10").checked = s.providers.allow_e10;
+  $("routing").checked = s.routing.enabled;
+  $("osrm").value = s.routing.osrm_url;
+  setupTrackers(s);
+  $("cache-on").checked = s.cache.enabled;
+  $("cache-hours").value = s.cache.max_age_hours;
+  $("tkkey").value = "";
+  const src = s.providers.tankerkoenig_key_source;
+  $("key-hint").textContent = src === "config" ? "Een key staat opgeslagen. Laat leeg om die te houden."
+    : src === "env" ? "De omgevingsvariabele TANKERKOENIG_API_KEY is actief en heeft voorrang."
+    : "Nog geen key. Vraag er gratis een aan op creativecommons.tankerkoenig.de.";
+  $("cfgpath").textContent = s.meta ? "Instellingen: " + s.meta.config_path : "";
+}
+
+function collect() {                           // alle instellingen zoals ze nu in het formulier staan
+  const enabled = ["tankerkoenig", "anwb"].filter((p) => $("p-" + p).checked);
+  return {
+    home: { lat: $("lat").value, lon: $("lon").value, address: $("address").value },
+    places: collectPlaces(),
+    vehicle: { plate: $("plate").value, fuel: $("fuel").value,
+      consumption_l_per_100km: $("consumption").value, real_world_factor: $("factor").value },
+    search: { fill_liters: $("fill").value, radius_km: $("radius").value,
+      max_extra_min: $("maxextra").value || "0", max_results: $("maxresults").value },
+    providers: { enabled, allow_e10: $("e10").checked, tankerkoenig_api_key: $("tkkey").value },
+    routing: { enabled: $("routing").checked, osrm_url: $("osrm").value },
+    cache: { enabled: $("cache-on").checked, max_age_hours: $("cache-hours").value },
+    ...($("ha-group").hidden ? {} : { ha: { tracker: $("ha-tracker").value } }),
+  };
+}
+
+function hint(id, text, isErr) { const el = $(id); el.textContent = text; el.classList.toggle("err", !!isErr); }
+$("form").addEventListener("input", () => { setDirty(true); refreshHomeButton(); });
+$("fill").addEventListener("input", () => setDirty(true));
+$("form").addEventListener("submit", (e) => e.preventDefault());
+
+$("geocode").addEventListener("click", async () => {
+  hint("home-hint", "Adres opzoeken…");
+  try {
+    const r = await api("api/geocode?q=" + encodeURIComponent($("address").value));
+    $("lat").value = r.lat; $("lon").value = r.lon; setDirty(true);
+    hint("home-hint", "Gevonden: " + r.label);
+    refreshHomeButton();
+  } catch (e) { hint("home-hint", e.message, true); }
+});
+
+/* ---- vaste adressen ---- */
+function placeRow(p = {}) {
+  const inp = (cls, ph, val, extra) => h("input", { type: "text", class: cls, placeholder: ph, value: val ?? "", ...extra });
+  const hintEl = h("p", { class: "hint" });
+  const addr = inp("p-address", "Straat 1, Plaats", p.address);
+  const lat = inp("p-lat", "", p.lat, { inputmode: "decimal" }), lon = inp("p-lon", "", p.lon, { inputmode: "decimal" });
+  const find = h("button", { type: "button", class: "btn" }, "Zoek");
+  find.addEventListener("click", async () => {
+    hintEl.textContent = "Adres opzoeken…"; hintEl.classList.remove("err");
+    try {
+      const r = await api("api/geocode?q=" + encodeURIComponent(addr.value));
+      lat.value = r.lat; lon.value = r.lon; setDirty(true);
+      hintEl.textContent = "Gevonden: " + r.label; refreshPlacePick();
+    } catch (e) { hintEl.textContent = e.message; hintEl.classList.add("err"); }
+  });
+  const del = h("button", { type: "button", class: "btn", "aria-label": "Dit adres verwijderen" }, "Verwijder");
+  const row = h("div", { class: "placerow" },
+    h("label", { class: "field" }, h("span", null, "Naam"), inp("p-name", "Bv. Werk", p.name, { maxlength: "40" })),
+    h("label", { class: "field" }, h("span", null, "Adres"), h("div", { class: "row" }, addr, find)),
+    h("div", { class: "pair" },
+      h("label", { class: "field" }, h("span", null, "Breedtegraad"), lat),
+      h("label", { class: "field" }, h("span", null, "Lengtegraad"), lon)),
+    hintEl, del);
+  del.addEventListener("click", () => { row.remove(); setDirty(true); refreshPlacePick(); });
+  return row;
+}
+function renderPlaces(list) { $("places").replaceChildren(...list.map(placeRow)); refreshPlacePick(); }
+function collectPlaces() {
+  return [...document.querySelectorAll("#places .placerow")].map((r) => ({
+    name: r.querySelector(".p-name").value, address: r.querySelector(".p-address").value,
+    lat: r.querySelector(".p-lat").value, lon: r.querySelector(".p-lon").value }));
+}
+function usablePlaces() {   // alleen rijen die als bestemming kunnen dienen
+  return collectPlaces().filter((p) => p.name.trim() && (p.address.trim() || (p.lat.trim() && p.lon.trim())));
+}
+function defaultPlace() { const l = usablePlaces(); return l.find((p) => p.name.trim().toLowerCase() === "werk") || l[0] || null; }
+function refreshPlacePick() {
+  const sel = $("placepick"), list = usablePlaces();
+  sel.replaceChildren(h("option", { value: "" }, "Vaste adressen"), ...list.map((p, i) => h("option", { value: String(i) }, p.name.trim())));
+  sel.hidden = !list.length;
+}
+$("addplace").addEventListener("click", () => {
+  const row = placeRow(); $("places").append(row); setDirty(true);
+  row.querySelector(".p-name").focus();
+});
+
+$("lookup").addEventListener("click", async () => {
+  hint("car-hint", "Kenteken opzoeken…");
+  try {
+    const v = await api("api/vehicle?plate=" + encodeURIComponent($("plate").value));
+    const use = v.l_per_100km ? `${nl(v.l_per_100km, 1)} l/100 km (${v.source})` : "verbruik onbekend bij de RDW";
+    hint("car-hint", `${v.description || v.plate}: ${v.fuel_label}, ${use}`);
+  } catch (e) { hint("car-hint", e.message, true); }
+});
+
+$("save").addEventListener("click", async () => {
+  try {
+    fillForm(await api("api/settings", collect()));
+    setDirty(false);
+    refreshHomeButton();
+  } catch (e) { setDirty(true, e.message); }
+});
+
+$("autolocate").addEventListener("change", () => store.set("autolocate", $("autolocate").checked));
+
+/* ================= huidige locatie ================= */
+const loc = { lat: null, lon: null, label: "", source: "" };   // source: device | home | address
+
+function showLoc(text, isErr) { const el = $("locstatus"); el.textContent = text; el.classList.toggle("err", !!isErr); }
+function setLoc(l, status, isErr) {
+  Object.assign(loc, l);
+  $("loc").value = loc.label;
+  showLoc(status, isErr);
+}
+function homeKnown() { return ($("lat").value.trim() && $("lon").value.trim()) || $("address").value.trim(); }
+function refreshHomeButton() { $("gohome").hidden = !homeKnown(); refreshPlacePick(); }
+
+function useHome(prefix = "") {
+  const lat = parseFloat(String($("lat").value).replace(",", ".")), lon = parseFloat(String($("lon").value).replace(",", "."));
+  const label = $("address").value.trim() || (isFinite(lat) && isFinite(lon) ? `${lat.toFixed(5)}, ${lon.toFixed(5)}` : "");
+  if (!label) { showLoc(prefix + "Er is geen thuisadres ingesteld. Vul een adres in.", true); return false; }
+  if (isFinite(lat) && isFinite(lon)) setLoc({ lat, lon, label, source: "home" }, prefix + "Thuis, uit je instellingen.");
+  else setLoc({ lat: null, lon: null, label, source: "address" }, prefix + "Thuisadres; wordt bij Bereken opgezocht.");
+  return true;
+}
+
+async function setupTrackers(s) {
+  const on = !!(s.meta && s.meta.ha_available);
+  $("ha-group").hidden = !on;
+  if (!on) return;
+  const sel = $("ha-tracker"), cur = (s.ha && s.ha.tracker) || "";
+  sel.replaceChildren(h("option", { value: "" }, "Geen (gebruik de browser)"));
+  try {
+    const list = (await api("api/ha/trackers")).trackers;
+    for (const t of list) sel.append(h("option", { value: t.entity_id }, t.name));
+    if (cur && !list.some((t) => t.entity_id === cur)) sel.append(h("option", { value: cur }, cur));
+  } catch (e) { if (cur) sel.append(h("option", { value: cur }, cur)); }
+  sel.value = cur;
+}
+
+async function locateViaHA() {              // laatst bekende locatie van de gekozen HA-tracker
+  if ($("ha-group").hidden || !$("ha-tracker").value) return false;
+  try {
+    const r = await api("api/ha/location");
+    const acc = r.accuracy_m == null ? "" : `, nauwkeurig tot ongeveer ${Math.round(r.accuracy_m)} m`;
+    setLoc({ lat: r.lat, lon: r.lon, label: r.label, source: "device" },
+      `Locatie van je telefoon via Home Assistant${acc}.`);
+    return true;
+  } catch (e) { return false; }
+}
+
+function locateDevice() {
+  return new Promise(async (resolve) => {
+    if (await locateViaHA()) return resolve(true);
+    if (!navigator.geolocation) { showLoc("Deze browser kan je locatie niet bepalen. Typ een adres.", true); return resolve(false); }
+    showLoc("Locatie van je apparaat opzoeken…");
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+      let label = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      try { label = (await api(`api/reverse?lat=${lat}&lon=${lon}`)).label; } catch { /* coördinaten als label */ }
+      const acc = Math.round(accuracy);
+      setLoc({ lat, lon, label, source: "device" },
+        `Gevonden met je apparaat, nauwkeurig tot ongeveer ${acc} m.` +
+        (acc > 1000 ? " Dat is grof (laptops baseren zich vaak op wifi of internetadres). Controleer of de plaats klopt of typ een adres." : ""),
+        acc > 1000);
+      resolve(true);
+    }, (err) => {
+      const why = err.code === 1 ? "Toegang tot je locatie is geweigerd."
+        : err.code === 3 ? "Het bepalen van je locatie duurde te lang." : "Je locatie is niet beschikbaar.";
+      if (!(homeKnown() && useHome(why + " "))) showLoc(why + " Typ een adres.", true);
+      resolve(false);
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  });
+}
+
+$("locate").addEventListener("click", locateDevice);
+$("gohome").addEventListener("click", () => useHome());
+$("loc").addEventListener("input", () => {
+  Object.assign(loc, { lat: null, lon: null, label: $("loc").value, source: "address" });
+  showLoc($("loc").value.trim() ? "Dit adres wordt bij Bereken opgezocht." : "");
+});
+
+/* ================= modus en bestemming ================= */
+let mode = "around";
+const dest = { lat: null, lon: null, label: "", source: "" };
+
+function showDest(text, isErr) { const el = $("deststatus"); el.textContent = text; el.classList.toggle("err", !!isErr); }
+function setDest(d, status, isErr) {
+  Object.assign(dest, d);
+  $("dest").value = dest.label;
+  showDest(status, isErr);
+}
+function usePlace(p) {
+  const lat = parseFloat(String(p.lat).replace(",", ".")), lon = parseFloat(String(p.lon).replace(",", "."));
+  const label = p.address.trim() || p.name.trim();
+  const note = `Vast adres: ${p.name.trim()}.`;
+  if (isFinite(lat) && isFinite(lon)) setDest({ lat, lon, label, source: "place" }, note);
+  else setDest({ lat: null, lon: null, label, source: "address" }, note + " Wordt bij Bereken opgezocht.");
+  return true;
+}
+function useDefaultPlace() {
+  const p = defaultPlace();
+  if (!p) { showDest("Typ een bestemming, of stel een vast adres in via het menu."); return false; }
+  return usePlace(p);
+}
+
+function setMode(m, persist = true) {
+  mode = m;
+  const route = m === "route";
+  $("mode-around").setAttribute("aria-pressed", String(!route));
+  $("mode-route").setAttribute("aria-pressed", String(route));
+  $("destfield").hidden = !route;
+  $("deststatus").hidden = !route;
+  $("loclabel").textContent = route ? "Vertrek" : "Huidige locatie";
+  if (route && !$("dest").value.trim()) useDefaultPlace();
+  if (persist) store.set("mode", m);
+}
+$("mode-around").addEventListener("click", () => setMode("around"));
+$("mode-route").addEventListener("click", () => setMode("route"));
+$("placepick").addEventListener("change", () => {
+  const p = usablePlaces()[Number($("placepick").value)];
+  $("placepick").value = "";
+  if (p) usePlace(p);
+});
+$("dest").addEventListener("input", () => {
+  Object.assign(dest, { lat: null, lon: null, label: $("dest").value, source: "address" });
+  showDest($("dest").value.trim() ? "Dit adres wordt bij Bereken opgezocht." : "");
+});
+$("swap").addEventListener("click", () => {
+  const a = { lat: loc.lat, lon: loc.lon, label: $("loc").value, source: loc.source === "device" ? "address" : loc.source };
+  const b = { lat: dest.lat, lon: dest.lon, label: $("dest").value, source: dest.source };
+  setLoc({ lat: b.lat, lon: b.lon, label: b.label, source: "address" }, "Vertrek en bestemming zijn omgewisseld.");
+  setDest({ ...a }, "");
+});
+
+/* ================= bestemming kiezen op de kaart ================= */
+const hasMap = typeof L !== "undefined";
+$("pickmap").hidden = !hasMap;       // zonder kaartbibliotheek blijft alleen het adresveld over
+let map = null, pin = null, startDot = null, picked = null, pickSeq = 0;
+
+function pickPoint(lat, lon) {
+  picked = { lat, lon, label: `${lat.toFixed(5)}, ${lon.toFixed(5)}` };
+  if (pin) pin.setLatLng([lat, lon]); else pin = L.marker([lat, lon]).addTo(map);
+  $("maplabel").textContent = picked.label;
+  $("mapok").disabled = false;
+  const seq = ++pickSeq;             // een traag antwoord voor een eerdere klik mag het label niet overschrijven
+  api(`api/reverse?lat=${lat}&lon=${lon}`).then((r) => {
+    if (seq === pickSeq && picked) { picked.label = r.label; $("maplabel").textContent = r.label; }
+  }).catch(() => { /* coördinaten blijven als label */ });
+}
+
+function openMap() {
+  const dlg = $("mapdlg");
+  dlg.showModal();
+  if (!map) {
+    map = L.map("map");
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>-bijdragers' }).addTo(map);
+    map.on("click", (e) => pickPoint(e.latlng.lat, e.latlng.lng));
+  }
+  map.invalidateSize();
+  picked = null; $("mapok").disabled = true; $("maplabel").textContent = "Nog geen plek gekozen.";
+  if (pin) { pin.remove(); pin = null; }
+  if (startDot) { startDot.remove(); startDot = null; }
+  const num = (v) => { const n = parseFloat(String(v).replace(",", ".")); return isFinite(n) ? n : null; };
+  const start = loc.lat != null ? [loc.lat, loc.lon] : (num($("lat").value) != null && num($("lon").value) != null ? [num($("lat").value), num($("lon").value)] : null);
+  if (start) startDot = L.circleMarker(start, { radius: 7, weight: 3, color: "#17212b", fillColor: "#f5c518", fillOpacity: 1 })
+    .bindTooltip("Vertrek").addTo(map);
+  if (dest.lat != null) { map.setView([dest.lat, dest.lon], 13); pickPoint(dest.lat, dest.lon); }
+  else if (start) map.setView(start, 11);
+  else map.setView([52.1, 5.3], 7);
+}
+$("pickmap").addEventListener("click", openMap);
+$("mapclose").addEventListener("click", () => $("mapdlg").close());
+$("mapok").addEventListener("click", () => {
+  if (!picked) return;
+  setDest({ lat: picked.lat, lon: picked.lon, label: picked.label, source: "map" }, "Gekozen op de kaart.");
+  $("mapdlg").close();
+  $("dest").focus({ preventScroll: true });
+});
+
+/* ================= berekenen ================= */
+let running = false;
+$("bar").addEventListener("submit", (e) => { e.preventDefault(); run(false); });
+
+async function run(refresh = false) {
+  if (running) return;
+  const label = $("loc").value.trim();
+  if (!label && !homeKnown()) { showLoc("Geef eerst een locatie op: typ een adres of kies Mijn locatie.", true); $("loc").focus(); return; }
+  const destLabel = $("dest").value.trim();
+  if (mode === "route" && !destLabel && !defaultPlace()) { showDest("Geef een bestemming op.", true); $("dest").focus(); return; }
+  running = true;
+  const btn = $("run");
+  btn.disabled = true; btn.textContent = "Bezig…";
+  $("main").replaceChildren(h("div", { class: "busy" }, h("div", { class: "spin" }),
+    h("div", null, h("strong", null, "Prijzen ophalen en routes berekenen"),
+      h("div", null, "Dit duurt meestal 5 tot 15 seconden."))));
+  const settings = collect();
+  // Het vertrekpunt van deze berekening is de huidige locatie, niet per se het opgeslagen thuisadres.
+  if (loc.lat != null) settings.home = { lat: String(loc.lat), lon: String(loc.lon), address: label };
+  else if (label) settings.home = { lat: "", lon: "", address: label };
+  try {
+    const body = { settings, refresh, mode };
+    if (mode === "route") {
+      body.dest = dest.lat != null && destLabel === dest.label
+        ? { lat: String(dest.lat), lon: String(dest.lon), address: destLabel } : { address: destLabel };
+    }
+    render(await api("api/search", body));
+  } catch (e) {
+    $("main").replaceChildren(h("div", { class: "warn" }, h("strong", null, "Berekenen mislukt"), e.message));
+  } finally {
+    running = false; btn.disabled = false; btn.textContent = "Bereken";
+  }
+}
+
+/* ================= navigeren ================= */
+const navmenu = $("navmenu");
+let shown = null;                                // het laatst getoonde resultaat
+function navButton(r) {
+  const btn = h("button", { type: "button", class: "btn navbtn", "aria-haspopup": "menu",
+    "aria-label": "Navigeer naar " + r.name }, "Navigeer");
+  btn.addEventListener("click", () => {
+    if (typeof navmenu.showPopover !== "function") { window.open(r.nav.google, "_blank", "noopener"); return; }
+    $("navtitle").textContent = r.name;
+    const note = $("navnote");
+    note.hidden = shown?.mode !== "route";
+    note.textContent = shown?.mode === "route" ? `Eerst tanken, daarna door naar ${shown.dest.label.split(",")[0]}. Waze navigeert alleen naar het station.` : "";
+    for (const app of ["google", "apple", "waze"]) $("nav-" + app).href = r.nav[app];
+    navmenu.showPopover();                       // eerst tonen, dan meten en plaatsen
+    const b = btn.getBoundingClientRect(), m = navmenu.getBoundingClientRect();
+    const left = Math.max(8, Math.min(b.right - m.width, window.innerWidth - m.width - 8));
+    const below = b.bottom + 6, above = b.top - m.height - 6;
+    navmenu.style.left = left + "px";
+    navmenu.style.top = (below + m.height > window.innerHeight && above > 8 ? above : below) + "px";
+    navmenu.querySelector("a").focus({ preventScroll: true });
+  });
+  return btn;
+}
+window.addEventListener("scroll", () => { if (navmenu.matches?.(":popover-open")) navmenu.hidePopover(); }, true);
+
+/* ================= resultaten tonen ================= */
+/* ================= kaart bij de resultaten ================= */
+let resmap = null;
+const res = { markers: new Map(), rows: new Map(), via: null, seq: 0 };
+const OSM_ATTR = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>-bijdragers';
+$("resmap-on").checked = store.get("resmap", true);
+$("resmap-on").addEventListener("change", () => store.set("resmap", $("resmap-on").checked));
+
+function sourceNote(r) {          // uit welke bron en hoe vers
+  const how = r.source_origin === "live" ? "vers opgehaald"
+    : r.source_origin === "stale" ? `bron onbereikbaar, cache van ${ageText(r.source_age_min)} geleden`
+    : `uit cache, ${ageText(r.source_age_min)} oud`;
+  return `${r.source_label} · ${how}`;
+}
+const OTHER_STYLE = { weight: 1, color: "#55626f", fillColor: "#c9cec6", fillOpacity: 1 };
+const pinIcon = (cls, n) => L.divIcon({ className: "", html: `<div class="pin ${cls}">${Number(n)}</div>`,
+  iconSize: [30, 30], iconAnchor: [15, 15] });
+const tip = (title, line, sub) => h("div", { class: "maptip" }, h("b", null, title), h("div", null, line), sub && h("div", { class: "sub" }, sub));
+
+function buildResultMap(d, el) {
+  if (resmap) { resmap.remove(); resmap = null; }
+  res.markers.clear(); res.via = null; res.seq++;
+  const map = resmap = L.map(el, { scrollWheelZoom: false });
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: OSM_ATTR }).addTo(map);
+  const route = d.mode === "route";
+  const bounds = L.latLngBounds([[d.home.lat, d.home.lon]]);
+  if (route && d.route.line.length > 1) {
+    bounds.extend(L.polyline(d.route.line, { color: "#17212b", weight: 4, opacity: .5 }).addTo(map).getBounds());
+  } else if (!route) {
+    L.circle([d.home.lat, d.home.lon], { radius: d.radius_km * 1000, weight: 1, color: "#55626f", fill: false, dashArray: "4 6" }).addTo(map);
+  }
+  for (const o of d.others) {
+    const dotm = L.circleMarker([o.lat, o.lon], { radius: 6, ...OTHER_STYLE })
+      .bindTooltip(tip(`${o.rank}. ${o.name}`, `${nl(o.price, 3)} per liter · totaal ${eur(o.total)}`, sourceNote(o))).addTo(map);
+    dotm.on("click", () => selectStation(d, o, true));
+    res.markers.set(o.rank, dotm);
+  }
+  const dot = (ll, fill, label) => L.circleMarker(ll, { radius: 8, weight: 3, color: "#17212b", fillColor: fill, fillOpacity: 1 })
+    .bindTooltip(label).addTo(map);
+  dot([d.home.lat, d.home.lon], "#f5c518", "Vertrek");
+  if (route) dot([d.dest.lat, d.dest.lon], "#17212b", "Bestemming");
+  for (const r of d.results) {
+    const m = L.marker([r.lat, r.lon], { icon: pinIcon(r.rank === 1 ? "best" : r.is_baseline ? "base" : "", r.rank), keyboard: false, riseOnHover: true })
+      .bindTooltip(tip(`${r.rank}. ${r.name}`, `${nl(r.price, 3)} per liter · totaal ${eur(r.total)}`, sourceNote(r))).addTo(map);
+    m.on("click", () => selectStation(d, r, true));
+    res.markers.set(r.rank, m);
+    bounds.extend([r.lat, r.lon]);
+  }
+  map.fitBounds(bounds.pad(0.12), { maxZoom: 14 });
+}
+
+function selectStation(d, r, scroll = false) {
+  for (const [rank, tr] of res.rows) {
+    tr.classList.toggle("sel", rank === r.rank);
+    if (rank === r.rank) tr.setAttribute("aria-current", "true"); else tr.removeAttribute("aria-current");
+  }
+  for (const [rank, m] of res.markers) {
+    const on = rank === r.rank;
+    if (m instanceof L.CircleMarker) { m.setStyle(on ? { weight: 3, color: "#1d5fd1", fillColor: "#fff" } : OTHER_STYLE); if (on) m.bringToFront(); }
+    else { m.setZIndexOffset(on ? 1000 : 0); m.getElement()?.querySelector(".pin")?.classList.toggle("sel", on); }
+  }
+  if (!resmap) return;
+  showDetail(d, r);
+  if (scroll) {                     // een klik op de kaart moet de berekening eronder zichtbaar maken
+    const m = $("resmap").getBoundingClientRect(), t = $("detail").getBoundingClientRect();
+    if (m.bottom < 0 || m.top > window.innerHeight) $("resmap").scrollIntoView({ block: "center", behavior: "smooth" });
+    else if (t.bottom > window.innerHeight) $("detail").scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  drawVia(d, r);
+}
+
+function showDetail(d, r) {         // de volledige berekening van één station
+  const route = d.mode === "route", c = d.consumption;
+  const base = d.results.find((x) => x.is_baseline) || d.results[0];
+  const est = r.estimated ? " (geschat, geen route beschikbaar)" : "";
+  const price = `€ ${nl(r.price, 3)}`;
+  const using = `${nl(c.real, 1)} l/100 km`;
+  const row = (label, calc, amount, cls) => h("tr", { class: cls || false },
+    h("td", null, label), h("td", { class: "calc" }, calc), h("td", { class: "amt" }, amount));
+  const rows = [
+    row("Tanken", `${nl(d.fill_liters, 0)} liter × ${price} per liter`, eur(r.fill_cost)),
+    route
+      ? row("Omweg", `${nl(r.km_exact, 2)} km extra × ${using} = ${nl(r.detour_liters, 2)} liter × ${price}${est}`, eur(r.detour_cost))
+      : row("Rit heen en terug", `${nl(r.km_out, 2)} km heen + ${nl(r.km_back, 2)} km terug = ${nl(r.km_exact, 2)} km × ${using} = ` +
+        `${nl(r.detour_liters, 2)} liter × ${price}${est}`, eur(r.detour_cost)),
+    row("Totaal", "tanken + brandstof voor de " + (route ? "omweg" : "rit"), eur(r.total), "sum"),
+  ];
+  if (r.is_baseline) {
+    rows.push(row("Referentie", route ? "Dit is het station met de kleinste omweg; de besparing van de andere stations is hieraan gemeten."
+      : "Dit is het dichtstbijzijnde station; de besparing van de andere stations is hieraan gemeten.", "—"));
+  } else {
+    rows.push(row("Besparing", `${eur(base.total)} (${base.name}, ${route ? "kleinste omweg" : "dichtstbijzijnde"}) − ${eur(r.total)}`, eur(r.saving)));
+  }
+  const extra = route ? r.minutes : r.extra_min;
+  rows.push(row(route ? "Omweg in tijd" : "Rijtijd",
+    route ? `${r.minutes} min extra ten opzichte van de directe route${est}`
+      : `${r.minutes} min heen en terug${r.is_baseline ? "" : `, ${r.extra_min > 0 ? "+" : ""}${r.extra_min} min ten opzichte van ${base.name}`}${est}`,
+    `${r.minutes} min`));
+  if (!r.is_baseline && extra > 0 && r.saving > 0)
+    rows.push(row("Per extra uur", `${eur(r.saving)} besparing ÷ ${extra} min extra`, eur(r.saving / (extra / 60))));
+  rows.push(row("Gegevens", `${r.source_label}${r.address ? ", " + r.address : ""}. ${sourceNote(r).split(" · ")[1]}.`, ""));
+  $("detail").replaceChildren(
+    h("h3", null, `${r.rank}. ${r.name}`, r.is_baseline && h("span", { class: "tag" }, route ? "minste omweg" : "dichtstbij")),
+    h("table", null, h("tbody", null, rows)),
+    h("p", { class: "fine" }, `Verbruik ${using}: ` + (c.explicit ? "opgegeven." : `${c.source ? c.source + ", " : ""}officieel ${nl(c.official, 1)} × praktijkfactor ${nl(c.factor, 1)}.`) +
+      " De brandstof voor de omweg is gerekend tegen de prijs van dit station."));
+}
+
+async function drawVia(d, r) {
+  const seq = ++res.seq, note = $("mapnote");
+  const a = `${d.home.lat},${d.home.lon}`, b = d.dest ? `${d.dest.lat},${d.dest.lon}` : a;
+  note.textContent = "Route naar dit station ophalen…";
+  let v = null;
+  try { v = await api(`api/via?a=${a}&s=${r.lat},${r.lon}&b=${b}`); } catch { /* melding hieronder */ }
+  if (seq !== res.seq || !resmap) return;           // intussen een ander station gekozen
+  if (res.via) { res.via.remove(); res.via = null; }
+  if (!v) { note.textContent = "De route naar dit station kon niet worden opgehaald."; return; }
+  res.via = L.polyline(v.line, { color: "#1d5fd1", weight: 5, opacity: .85, dashArray: v.estimated ? "6 8" : null }).addTo(resmap);
+  const vb = res.via.getBounds();
+  if (!resmap.getBounds().contains(vb)) resmap.fitBounds(vb.pad(0.15), { maxZoom: 14 });
+  const est = v.estimated ? " (geschat, rechte lijnen)" : "";
+  note.textContent = d.mode === "route"
+    ? `Via ${r.name}: ${nl(v.km, 1)} km, ${v.min} min, tegenover ${nl(d.route.km, 1)} km, ${d.route.min} min direct${est}.`
+    : `Rit heen en terug naar ${r.name}: ${nl(v.km, 1)} km, ${v.min} min${est}.`;
+}
+
+function verdictText(d) {
+  const best = d.results[0], base = d.results.find((r) => r.is_baseline);
+  if (!best) return null;
+  if (d.mode === "route") {
+    if (best.is_baseline) {
+      return [`Tank bij ${best.name}.`,
+        `Het station met de kleinste omweg is ook het voordeligst: ${eur(best.total)} voor ${nl(d.fill_liters, 0)} liter, ` +
+        `inclusief de omweg (${best.minutes} min).`];
+    }
+    const perHour = best.minutes > 0 ? ` Dat is ongeveer ${eur(best.saving / (best.minutes / 60))} per extra uur.` : "";
+    const cost = best.minutes > 0 ? `voor ${best.minutes} ${best.minutes === 1 ? "minuut" : "minuten"} omweg` : "zonder noemenswaardige omweg";
+    return [`Tank bij ${best.name}.`,
+      `${eur(best.saving)} goedkoper dan ${base.name} (het station dat het best op je route ligt), ${cost}.${perHour}`];
+  }
+  if (best.is_baseline) {
+    return [`Tank bij ${best.name}.`,
+      `Het dichtstbijzijnde station is ook het voordeligst: ${eur(best.total)} voor ${nl(d.fill_liters, 0)} liter, ` +
+      `inclusief de rit heen en terug.`];
+  }
+  const perHour = best.extra_min > 0 ? ` Dat is ongeveer ${eur(best.saving / (best.extra_min / 60))} per extra uur.` : "";
+  return [`Tank bij ${best.name}.`,
+    `${eur(best.saving)} goedkoper dan ${base.name} (het dichtstbijzijnde station), ` +
+    `voor ${best.extra_min} minuten extra rijtijd.${perHour}`];
+}
+
+function render(d) {
+  shown = d;
+  if (resmap) { resmap.remove(); resmap = null; }
+  const route = d.mode === "route";
+  const main = h("div");
+  const warnings = [
+    ...d.warnings,
+    ...Object.entries(d.provider_messages).filter(([, m]) => m.startsWith("mislukt")).map(([n, m]) => `Bron ${n}: ${m}`),
+  ];
+  if (warnings.length) main.append(h("div", { class: "warn" }, h("strong", null, "Let op"), ...warnings.map((w) => h("div", null, w))));
+
+  if (d.notice || !d.results.length) {
+    main.append(h("div", { class: "empty" }, h("h2", null, "Geen resultaten"), h("p", null, d.notice || "Er zijn geen stations gevonden.")));
+    $("main").replaceChildren(main);
+    return;
+  }
+
+  const [headline, sub] = verdictText(d);
+  main.append(h("h2", { class: "verdict" }, headline), h("p", { class: "verdict-sub" }, sub));
+
+  const c = d.consumption;
+  const car = d.vehicle ? `${d.vehicle.description || d.vehicle.plate}` : null;
+  const how = c.explicit ? "opgegeven" : `${c.source ? c.source + ", " : ""}officieel ${nl(c.official, 1)} × ${nl(c.factor, 1)}`;
+  const short = (l) => l.split(",").slice(0, 3).join(",");
+  main.append(h("ul", { class: "context" },
+    h("li", null, "Vertrek: ", h("b", null, short(d.home.label))),
+    route && h("li", null, "Bestemming: ", h("b", null, short(d.dest.label))),
+    route && h("li", null, "Route: ", h("b", null, `${nl(d.route.km, 0)} km, ${d.route.min} min`), d.any_estimated ? " (geschat)" : ""),
+    car && h("li", null, "Auto: ", h("b", null, car)),
+    h("li", null, "Brandstof: ", h("b", null, d.fuel_label)),
+    h("li", null, "Verbruik: ", h("b", null, `${nl(c.real, 1)} l/100 km`), ` (${how})`),
+    h("li", null, h("b", null, `${nl(d.fill_liters, 0)} liter`),
+      route ? ` tanken, zoeken tot ${nl(d.corridor_km, 0)} km naast de route` : ` tanken, zoekstraal ${nl(d.radius_km, 0)} km`)));
+
+  const wantMap = typeof L !== "undefined" && store.get("resmap", true);
+  if (wantMap) {
+    main.append(h("div", { id: "resmap", class: "resmap", role: "application", "aria-label": "Kaart met route en stations" }),
+      h("p", { class: "mapnote", id: "mapnote" }, "Klik op een station of een regel om de omweg en de volledige berekening te zien."),
+      h("div", { class: "detail", id: "detail", "aria-live": "polite" }));
+  }
+
+  const cols = route
+    ? [["", "rank"], ["Station", "l"], ["Prijs", "price"], ["Tank", ""], ["Extra km", ""], ["Omweg", ""],
+       ["Omrit", ""], ["Totaal", ""], ["Besparing", ""], ["", "nav"]]
+    : [["", "rank"], ["Station", "l"], ["Prijs", "price"], ["Tank", ""], ["Retour", ""], ["Tijd", ""],
+       ["Omrit", ""], ["Totaal", ""], ["Extra tijd", ""], ["Besparing", ""], ["", "nav"]];
+  const tips = { Prijs: "euro per liter", Tank: `${nl(d.fill_liters, 0)} liter tanken`, Retour: "kilometers heen en terug naar je vertrekpunt",
+    Tijd: "rijtijd heen en terug", Omrit: route ? "brandstofkosten van de omweg" : "brandstofkosten van de rit heen en terug",
+    Totaal: "Tank + Omrit", "Extra km": "extra afstand ten opzichte van de directe route", Omweg: "extra rijtijd ten opzichte van de directe route",
+    "Extra tijd": "Tijd min de tijd van het dichtstbijzijnde station",
+    Besparing: route ? "Totaal van het station met de kleinste omweg min dit Totaal" : "Totaal van het dichtstbijzijnde station min dit Totaal" };
+  const thead = h("thead", null, h("tr", null, ...cols.map(([t, k]) =>
+    h("th", { class: k === "l" ? "l" : "", title: tips[t] }, t))));
+
+  const rows = [];
+  res.rows.clear();
+  let prevRank = 0;
+  d.results.forEach((r) => {
+    if (r.rank > prevRank + 1) {
+      rows.push(h("tr", { class: "gap" }, h("td", { colspan: cols.length }, `… ${r.rank - prevRank - 1} stations ertussen …`)));
+    }
+    prevRank = r.rank;
+    const est = r.estimated ? h("span", { title: "geschat; geen route beschikbaar" }, "~") : "";
+    const tr = h("tr", { class: r.rank === 1 ? "best" : "", tabindex: wantMap ? "0" : false },
+      h("td", { class: "rank" }, String(r.rank)),
+      h("td", { class: "l station" },
+        h("span", { class: "sname" }, r.name), r.is_baseline && h("span", { class: "tag" }, route ? "minste omweg" : "dichtstbij"),
+        h("span", { class: "sub" }, r.address),
+        h("span", { class: "sub src", title: "Uit welke gegevensbron dit station komt" }, sourceNote(r))),
+      h("td", null, nl(r.price, 3)),
+      h("td", null, nl(r.fill_cost, 2)),
+      h("td", null, nl(r.km_round_trip, 1) + " km", est),
+      h("td", null, r.minutes + " min", est),
+      h("td", null, nl(r.detour_cost, 2)),
+      h("td", { class: "total" }, nl(r.total, 2)),
+      !route && h("td", null, r.is_baseline ? "–" : (r.extra_min > 0 ? "+" : "") + r.extra_min + " min"),
+      h("td", { class: r.saving > 0 ? "gain" : r.saving < 0 ? "loss" : "" }, nl(r.saving, 2)),
+      h("td", null, navButton(r)));
+    res.rows.set(r.rank, tr);
+    if (wantMap) {
+      tr.addEventListener("click", (e) => { if (!e.target.closest("button, a")) selectStation(d, r, true); });
+      tr.addEventListener("keydown", (e) => {
+        if ((e.key === "Enter" || e.key === " ") && e.target === tr) { e.preventDefault(); selectStation(d, r, true); }
+      });
+    }
+    rows.push(tr);
+  });
+  main.append(h("div", { class: "tablewrap" }, h("table", null, thead, h("tbody", null, rows))));
+
+  const legend = h("div", { class: "legend" },
+    h("p", null, route
+      ? "Bedragen in euro. Extra km en omweg zijn het verschil met de directe route naar je bestemming. Totaal is tanken plus " +
+        "de brandstof voor die omweg. Besparing geldt ten opzichte van het station met de kleinste omweg."
+      : "Bedragen in euro. Totaal is tanken plus de brandstof voor de rit heen en terug naar je vertrekpunt. " +
+        "Besparing en extra tijd gelden ten opzichte van het dichtstbijzijnde station."));
+  if (d.any_estimated) legend.append(h("p", null, "~ = geschatte afstand en tijd (route niet beschikbaar)."));
+  if (d.max_extra_min != null) legend.append(h("p", null,
+    `Tijdlimiet: stations met meer dan ${nl(d.max_extra_min, 0)} minuten ${route ? "omweg" : "extra rijtijd"} zijn weggelaten (${d.hidden_by_time_limit}).`));
+  main.append(legend);
+
+  const notes = h("div", { class: "notes" });
+  const ok = Object.entries(d.provider_messages).filter(([, m]) => !m.startsWith("mislukt"));
+  if (ok.length) notes.append(h("h3", null, "Bronnen"), h("ul", null, ...ok.map(([n, m]) => h("li", null, `${n}: ${m}`)),
+    ...d.attributions.map((a) => h("li", null, a))));
+  if (Object.values(d.sources).some((s) => s.origin !== "live")) {
+    const again = h("button", { type: "button", class: "btn" }, "Prijzen vernieuwen");
+    again.addEventListener("click", () => run(true));
+    notes.append(h("p", null, "Een deel van de prijzen komt uit de lokale cache. ", again));
+  }
+  // TIJDELIJK, voor het testen van de bronnen: alle bekeken stations met bron, status en berekening.
+  notes.append(h("p", null, h("a", { class: "btn", href: "api/export", download: "" }, "Download alle data (tijdelijk)"),
+    " Alle bekeken stations als JSON: bron, prijzen, waarom een station wel of niet in de uitkomst staat, en de berekening."));
+  main.append(notes);
+  $("main").replaceChildren(main);
+  if (wantMap) {
+    buildResultMap(d, $("resmap"));
+    selectStation(d, d.results[0]);
+  }
+}
+
+/* ================= start ================= */
+(async function init() {
+  $("autolocate").checked = store.get("autolocate", true);
+  try {
+    fillForm(await api("api/settings"));
+    refreshHomeButton();
+  } catch (e) {
+    $("main").replaceChildren(h("div", { class: "warn" }, h("strong", null, "Instellingen laden mislukt"), e.message));
+    return;
+  }
+  setMode(store.get("mode", "around") === "route" ? "route" : "around", false);
+  if ($("autolocate").checked) await locateDevice();
+  else if (!(homeKnown() && useHome())) showLoc("Typ een adres of kies Mijn locatie.");
+})();
+</script>
+</body>
+</html>

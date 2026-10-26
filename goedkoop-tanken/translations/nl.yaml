@@ -1,0 +1,4 @@
+configuration:
+  contact:
+    name: Contactadres (optioneel)
+    description: E-mailadres dat in de User-Agent naar OpenStreetMap-diensten gaat, zodat de beheerders je kunnen bereiken bij problemen.

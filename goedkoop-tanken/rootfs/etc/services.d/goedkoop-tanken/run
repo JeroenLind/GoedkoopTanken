@@ -1,0 +1,9 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+CONTACT="$(bashio::config 'contact')"
+if bashio::var.has_value "${CONTACT}"; then
+    export FUELFINDER_CONTACT="${CONTACT}"
+fi
+bashio::log.info "Goedkoop tanken start op poort 8099 (Ingress)"
+cd /app || exit 1
+exec python3 -m fuelfinder web --host 0.0.0.0 --port 8099 --data-dir /data --ingress --no-browser

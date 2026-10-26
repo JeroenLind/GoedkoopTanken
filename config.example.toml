@@ -1,0 +1,46 @@
+# Kopieer dit bestand naar config.toml en pas het aan.
+
+[home]
+# Kies OF coördinaten OF een adres (coördinaten zijn sneller en nauwkeuriger).
+lat = 51.9244
+lon = 6.5776
+# address = "Voorbeeldstraat 1, 7000 AA Doetinchem"
+
+# Vaste adressen als bestemming voor zoeken langs een route (find --to werk, of de keuzelijst
+# Vaste adressen in de webinterface). De naam "Werk" is de standaardbestemming. Zo vaak als je wilt (max. 20).
+# [[places]]
+# name = "Werk"
+# address = "Werkstraat 1, Weert"
+# lat = 51.2        # optioneel; zonder coördinaten wordt het adres bij Bereken opgezocht
+# lon = 5.7
+
+[vehicle]
+plate = "AB123C"                  # kenteken -> brandstof en verbruik via de RDW
+# fuel = "petrol95"               # optioneel: petrol95, petrol98, diesel of lpg
+# consumption_l_per_100km = 6.5   # optioneel: eigen waarde, overschrijft de RDW
+real_world_factor = 1.2           # praktijkverbruik = officieel x 1,2 (alleen bij RDW-waarde)
+
+[search]
+fill_liters = 40                  # hoeveel liter je gemiddeld tankt
+radius_km = 25
+max_results = 10
+max_extra_min = 30                # max. extra rijtijd t.o.v. het dichtstbijzijnde station; 0 = geen limiet
+
+[providers]
+# Volgorde telt: bij dubbele stations (binnen 75 m) wint de bron die eerst staat.
+enabled = ["tankerkoenig", "anwb"]
+
+[providers.tankerkoenig]
+api_key = ""                      # of zet omgevingsvariabele TANKERKOENIG_API_KEY
+allow_e10 = true                  # false = alleen E5 meenemen (als je auto geen E10 mag)
+
+[routing]
+enabled = true
+osrm_url = "https://router.project-osrm.org"
+
+[cache]
+# Prijzen en stationslocaties lokaal bewaren. Gegevens jonger dan max_age_hours worden
+# hergebruikt in plaats van opnieuw opgehaald. 12 uur = een halve dag.
+enabled = true
+max_age_hours = 12
+# dir = "cache"   # map voor de opslag, relatief aan dit bestand
