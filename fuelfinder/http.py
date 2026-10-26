@@ -7,7 +7,9 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import time
+import contextlib
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -23,6 +25,19 @@ def user_agent() -> str:
 TIMEOUT = 20
 
 
+_local = threading.local()
+
+
+@contextlib.contextmanager
+def quick(timeout: float = 10.0):
+    """Eén poging met een korte time-out in deze thread (voor de testknoppen: snel en eerlijk antwoord)."""
+    _local.quick = timeout
+    try:
+        yield
+    finally:
+        _local.quick = None
+
+
 class FetchError(Exception):
     """Mislukte HTTP-aanvraag, met een leesbare melding."""
 
@@ -32,10 +47,13 @@ def fetch_json(url: str, headers: dict[str, str] | None = None, retries: int = 2
     if headers:
         req_headers.update(headers)
     last: Exception | None = None
+    timeout = getattr(_local, "quick", None)
+    if timeout:
+        retries = 0
     for attempt in range(retries + 1):
         try:
             req = urllib.request.Request(url, headers=req_headers)
-            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+            with urllib.request.urlopen(req, timeout=timeout or TIMEOUT) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             body = ""

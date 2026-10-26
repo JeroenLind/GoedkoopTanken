@@ -86,6 +86,8 @@
     cursor: pointer; white-space: nowrap; }
   .btn:hover { background: var(--surface); }
   #placepick { border: 1px solid var(--ink); background: transparent; border-radius: 4px; padding: 8px 6px; max-width: 9.5rem; }
+  .srcrow { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+  .hint.ok { color: var(--gain); }
   .placerow { border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin: 0 0 10px; }
   .placerow > .btn { margin-top: 2px; }
   .btn.primary { background: var(--ink); color: var(--paper); font: 600 1.1rem/1 var(--display);
@@ -340,8 +342,12 @@
 
     <section class="group">
       <h3>Bronnen</h3>
-      <label class="check"><input type="checkbox" id="p-tankerkoenig"> Tankerkönig (Duitsland)</label>
-      <label class="check"><input type="checkbox" id="p-anwb"> ANWB Onderweg (Nederland, België, Duitsland)</label>
+      <div class="srcrow"><label class="check"><input type="checkbox" id="p-tankerkoenig"> Tankerkönig (Duitsland)</label>
+        <button type="button" class="btn" data-test="tankerkoenig">Test</button></div>
+      <p class="hint" id="t-tankerkoenig" role="status"></p>
+      <div class="srcrow"><label class="check"><input type="checkbox" id="p-anwb"> ANWB Onderweg (Nederland, België, Duitsland)</label>
+        <button type="button" class="btn" data-test="anwb">Test</button></div>
+      <p class="hint" id="t-anwb" role="status"></p>
       <p class="hint">ANWB Onderweg is geen officiële, gedocumenteerde bron. Die kan zonder bericht veranderen of wegvallen, en is niet door de ANWB goedgekeurd voor dit gebruik. Gebruik is op eigen risico; zet de bron uit als je dat liever niet wilt.</p>
       <label class="field"><span>Tankerkönig API-key</span>
         <input type="password" id="tkkey" autocomplete="new-password"></label>
@@ -526,6 +532,20 @@ $("geocode").addEventListener("click", async () => {
     refreshHomeButton();
   } catch (e) { hint("home-hint", e.message, true); }
 });
+
+/* ---- bronnen testen ---- */
+for (const btn of document.querySelectorAll("[data-test]")) {
+  btn.addEventListener("click", async () => {
+    const name = btn.dataset.test, out = $("t-" + name);
+    btn.disabled = true; out.className = "hint"; out.textContent = "Testen… (maximaal 10 seconden)";
+    try {
+      const r = await api("api/test-source", { source: name, providers: { tankerkoenig_api_key: $("tkkey").value } });
+      out.className = "hint " + (r.ok ? "ok" : "err");
+      out.textContent = (r.ok ? "In orde. " : "Mislukt. ") + r.detail + (r.advice ? " " + r.advice : "");
+    } catch (e) { out.className = "hint err"; out.textContent = e.message; }
+    finally { btn.disabled = false; }
+  });
+}
 
 /* ---- vaste adressen ---- */
 function placeRow(p = {}) {

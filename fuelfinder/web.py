@@ -184,6 +184,10 @@ class App:
             raise ValueError("Coördinaten liggen buiten het bereik")
         return {"label": geo.reverse_geocode(la, lo, self.current().nominatim_url)}
 
+    def test_source(self, body: dict) -> dict:
+        key = ((body.get("providers") or {}).get("tankerkoenig_api_key") or "")
+        return service.test_source(self.current(), str(body.get("source") or ""), key)
+
     def ha_trackers(self) -> dict:
         try:
             return {"trackers": ha.trackers()}
@@ -317,7 +321,7 @@ def make_handler(app: App, port: int, ingress: bool = False):
             if not self._host_ok():
                 return self._error(403, "Ongeldige Host-header")
             path = urllib.parse.urlparse(self.path).path
-            if path not in ("/api/settings", "/api/search", "/api/cache/clear"):
+            if path not in ("/api/settings", "/api/search", "/api/cache/clear", "/api/test-source"):
                 return self._error(404, "Niet gevonden")
             data = self._read_json()
             if data is None:
@@ -326,6 +330,8 @@ def make_handler(app: App, port: int, ingress: bool = False):
                 return self._run(lambda: app.save_settings(data))
             if path == "/api/cache/clear":
                 return self._run(app.cache_clear)
+            if path == "/api/test-source":
+                return self._run(lambda: app.test_source(data))
             return self._run(lambda: app.search(data))
 
         def log_message(self, fmt, *args):  # korte log in de terminal

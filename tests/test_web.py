@@ -218,6 +218,14 @@ class WebTests(unittest.TestCase):
         self.assertEqual(status, 400)
         self.call("POST", "/api/settings", {"places": []})
 
+    def test_test_source_endpoint(self):
+        status, data, _ = self.call("POST", "/api/test-source", {"source": "anwb"})
+        self.assertEqual(status, 200, data)
+        self.assertEqual((data["source"], data["stations"]), ("anwb", 0))   # de nepstations liggen ver van Roermond
+        self.assertIn("geen stations", data["detail"])
+        status, data, _ = self.call("POST", "/api/test-source", {"source": "nepbron"})
+        self.assertEqual(status, 400)
+
     def test_map_library_is_served_and_nothing_else_from_disk(self):
         status, body, resp = self.call("GET", "/vendor/leaflet/leaflet.js")
         self.assertEqual(status, 200)

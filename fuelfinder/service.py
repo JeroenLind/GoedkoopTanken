@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 
 from . import calc, geo, http, vehicle
@@ -360,3 +360,52 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
                    "hidden_by_time_limit": out.hidden_by_time_limit},
         "stations": rows,
     }
+
+
+# Een bekend punt per bron voor de testknop: klein gebied, dus een snelle en lichte aanvraag.
+TEST_POINTS = {"tankerkoenig": (51.7886, 6.1386, "Kleve"), "anwb": (51.1942, 5.9876, "Roermond")}
+
+
+def test_source(cfg: Config, name: str, api_key: str | None = None) -> dict:
+    """Test één prijsbron: bereikbaar, sleutel geldig, levert data. Nooit de sleutel in het antwoord."""
+    import time
+    from .providers import SOURCE_LABELS, build_providers
+    from .providers.base import ProviderError
+    if name not in TEST_POINTS:
+        raise SearchError(f"Onbekende bron '{name}'")
+    key = (api_key or "").strip() or cfg.tankerkoenig_key
+    cfg = replace(cfg, tankerkoenig_key=key)
+    provider = build_providers(cfg, [name])[0]
+    lat, lon, where = TEST_POINTS[name]
+    out = {"source": name, "label": SOURCE_LABELS.get(name, name), "ok": False, "ms": None,
+           "stations": 0, "priced": 0, "detail": "", "advice": ""}
+    if name == "tankerkoenig" and not key:
+        out["detail"] = "Geen API-key ingevuld."
+        out["advice"] = "Vraag gratis een key aan op creativecommons.tankerkoenig.de en vul hem hierboven in."
+        return out
+    start = time.monotonic()
+    try:
+        with http.quick():
+            stations = provider.fetch(lat, lon, 5.0)
+    except (ProviderError, http.FetchError) as e:
+        out["ms"] = round((time.monotonic() - start) * 1000)
+        msg = str(e)
+        low = msg.lower()
+        out["detail"] = msg.replace(key, "***") if key else msg
+        if "apikey" in low or "api-key" in low or "weigerde" in low or "http 401" in low or "http 403" in low:
+            out["advice"] = "De server is bereikbaar, maar de key wordt niet geaccepteerd. Controleer de key."
+        elif "timed out" in low or "time-out" in low or "timeout" in low:
+            out["advice"] = "De server reageert niet op tijd. Dat is meestal tijdelijk; probeer het over een paar minuten opnieuw."
+        else:
+            out["advice"] = "De verbinding met de bron mislukt. Controleer je internetverbinding of probeer het later opnieuw."
+        return out
+    out["ms"] = round((time.monotonic() - start) * 1000)
+    out["stations"] = len(stations)
+    out["priced"] = sum(1 for s in stations if s.prices)
+    out["ok"] = out["stations"] > 0
+    if out["ok"]:
+        out["detail"] = f"{out['stations']} stations bij {where}, {out['priced']} met prijs, antwoord in {out['ms']} ms."
+    else:
+        out["detail"] = f"Bereikbaar, maar geen stations teruggekregen bij {where}."
+        out["advice"] = "De bron antwoordt wel. Probeer het later opnieuw; blijft dit zo, dan is de bron mogelijk gewijzigd."
+    return out
