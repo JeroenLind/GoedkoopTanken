@@ -2,7 +2,7 @@ name: Goedkoop tanken
 version: "0.1.0"
 slug: goedkoop-tanken
 description: Vind het goedkoopste tankstation, inclusief de kosten van de omrit
-url: https://github.com/jeroenlind/goedkoop-tanken
+url: https://github.com/JeroenLind/GoedkoopTanken
 arch:
   - aarch64
   - amd64
