@@ -788,8 +788,7 @@ function openMap(opts) {
   dlg.showModal();
   if (!map) {
     map = L.map("map");
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19,
-      attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>-bijdragers' }).addTo(map);
+    osmTiles().addTo(map);
     map.on("click", (e) => pickPoint(e.latlng.lat, e.latlng.lng));
   }
   map.invalidateSize();
@@ -881,6 +880,10 @@ window.addEventListener("scroll", () => { if (navmenu.matches?.(":popover-open")
 /* ================= kaart bij de resultaten ================= */
 let resmap = null;
 const res = { markers: new Map(), rows: new Map(), via: null, seq: 0 };
+// OpenStreetMap weigert tegels (403) zonder Referer. In Home Assistant stuurt de browser die soms niet
+// mee, dus vragen we per tegel uitdrukkelijk om de herkomst (alleen het adres van de site, geen pad).
+const osmTiles = () => L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  { maxZoom: 19, attribution: OSM_ATTR, referrerPolicy: "origin" });
 const OSM_ATTR = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>-bijdragers';
 $("resmap-on").checked = store.get("resmap", true);
 $("resmap-on").addEventListener("change", () => store.set("resmap", $("resmap-on").checked));
@@ -900,7 +903,7 @@ function buildResultMap(d, el) {
   if (resmap) { resmap.remove(); resmap = null; }
   res.markers.clear(); res.via = null; res.seq++;
   const map = resmap = L.map(el, { scrollWheelZoom: false });
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: OSM_ATTR }).addTo(map);
+  osmTiles().addTo(map);
   const route = d.mode === "route";
   const bounds = L.latLngBounds([[d.home.lat, d.home.lon]]);
   if (route && d.route.line.length > 1) {
