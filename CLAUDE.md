@@ -11,6 +11,15 @@
 5. Een kleine bugfix die geen gedrag verandert, hoeft het document niet aan te passen.
 6. Noem in je antwoord in één regel welke eisen je hebt toegevoegd of gewijzigd.
 
+## Ontwerp bijhouden (altijd, zonder dat erom gevraagd wordt)
+
+`docs/DESIGN.md` legt de structuur, de flows en de ontwerpkeuzes (D-nummers) uit en koppelt ze aan de eisen.
+
+1. Verandert een module, flow, beveiligingsmaatregel of draaiomgeving, pas dan in dezelfde wijziging het ontwerp aan.
+2. Een nieuwe keuze krijgt een D-nummer met besluit door (*Jeroen* of *Claude*), reden, afgewezen alternatieven en de eisen die hij invult; werk ook tabel 9 (eisen naar ontwerp) bij.
+3. Noem alleen redenen en alternatieven die echt zijn besproken of in de code staan; verzin er geen. Zeg het als iets niet onderbouwd is.
+4. Een nieuwe of gewijzigde eis begint in `docs/REQUIREMENTS.md`; het ontwerp volgt.
+
 ## Verder
 
 - Taal van interface, documentatie en commitberichten: Nederlands.

@@ -159,5 +159,5 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 
 ## 8. Herleidbaarheid
 
-Elke eis heeft een herkomst in hoofdstuk 3 en 4. Eisen met herkomst "Bevestigd" zijn door mij voorgesteld en
+Welke ontwerpkeuzes, modules en tests een eis invullen, staat in [DESIGN.md](DESIGN.md), hoofdstuk 9. Elke eis heeft een herkomst in hoofdstuk 3 en 4. Eisen met herkomst "Bevestigd" zijn door mij voorgesteld en
 op 27 oktober 2026 door Jeroen goedgekeurd. Wijzigt een eis, pas dan eerst dit document aan.
