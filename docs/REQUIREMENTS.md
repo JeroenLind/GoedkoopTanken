@@ -19,7 +19,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 
 | Nr. | Omschrijving | Herkomst |
 | --- | --- | --- |
-| U-1 | Hoofdgebruikers: Mensen met een auto die zo goedkoop willen tanken, maar wel binnen zekere grenzen | Jeroen |
+| U-1 | Hoofdgebruikers: mensen met een auto die zo goedkoop mogelijk willen tanken, maar wel binnen zekere grenzen (bijvoorbeeld een maximale omrit). | Jeroen |
 | U-2 | Home Assistant draait op een Raspberry Pi; de add-on moet ook werken op andere hardware. | Jeroen |
 | U-3 | Doelgroep: Nederlandse Home Assistant-gebruikers; interface en documentatie in het Nederlands. | Jeroen |
 | U-4 | Telefoon (Android) is naar verwachting de meest gebruikte plek om de app te openen. | Jeroen |

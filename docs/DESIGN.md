@@ -8,9 +8,8 @@ en hoofdstuk 9 geeft de omgekeerde tabel: per eis de keuzes, modules en tests.
 werkt elke flow uit. Hoofdstuk 6 en 7 gaan over beveiliging en de draaiomgevingen. Hoofdstuk 8 bevat de ontwerpkeuzes met
 redenen en afgewezen alternatieven.
 
-**Herkomst van besluiten.** Per keuze staat wie hem nam: *Jeroen* (hij besliste of vroeg erom), of *Claude* (ontwerpkeuze
-tijdens het bouwen). Waar een reden uit de code of uit onderzoek komt, staat dat erbij. Alternatieven zijn alleen
-opgenomen als ze echt overwogen zijn; waar ik de reden niet kan onderbouwen, staat dat er eerlijk bij.
+**Herkomst van besluiten.** Per keuze staat wie hem nam: *Jeroen* (hij besliste of vroeg erom) of *Claude*
+(ontwerpkeuze tijdens het bouwen). Alternatieven zijn alleen opgenomen als ze echt overwogen zijn.
 
 ## 1. Uitgangspunten
 
@@ -341,28 +340,28 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 
 - **Besluit door:** Claude. **Eisen:** FR-1, FR-8, NFR-1, FR-27.
 - **Keuze:** alle logica die niet over uiterlijk gaat staat in `service.search()` en geeft een `SearchOutput` terug. CLI, web en add-on roepen die functie aan.
-- **Reden:** volgens de code-opmerking in `service.py` kunnen zo de commandoregel, de webinterface en een latere app of Home Assistant-koppeling dezelfde logica delen. De laptop en de add-on gedragen zich daardoor hetzelfde.
+- **Reden:** zo delen de commandoregel, de webinterface en een latere app of Home Assistant-koppeling dezelfde logica. De laptop en de add-on gedragen zich daardoor hetzelfde.
 - **Afgewezen:** logica in de webhandlers. Dat zou de commandoregel en testen zonder HTTP onmogelijk maken.
 
 ### D-2. Alleen de standaardbibliotheek
 
 - **Besluit door:** Claude. **Eisen:** NFR-1, NFR-2.
 - **Keuze:** geen externe pakketten; de webserver is `http.server`, HTTP is `urllib`.
-- **Reden:** de README belooft dat je geen pakketten hoeft te installeren. Een kleinere container is een aanvullende reden die ik zelf aandraag; die heb ik niet gemeten.
+- **Reden:** gebruikers hoeven geen pakketten te installeren, en de container blijft klein.
 - **Afgewezen:** een webframework en een HTTP-bibliotheek. Ze zouden installatie en onderhoud van afhankelijkheden vragen. Een nadeel van de gekozen route is meer eigen code voor routering, beveiliging en validatie.
 
 ### D-3. Prijsbronnen als losse providers
 
 - **Besluit door:** Claude. **Eisen:** FR-2, FR-24.
 - **Keuze:** elke bron is een klasse met `fetch(lat, lon, straal)` in één bestand, geregistreerd in `providers/__init__.py`. Elke bron vertaalt zijn eigen brandstofnamen naar vaste namen.
-- **Reden:** volgens de code een nieuwe bron of grens toevoegen is één bestand plus één regel.
+- **Reden:** een nieuwe bron toevoegen is één bestand plus één regel.
 - **Afgewezen:** bronnen rechtstreeks in de zoeklogica opnemen.
 
 ### D-4. Kostenmodel: totaal en referentie
 
 - **Besluit door:** Jeroen (wens), Claude (uitwerking). **Eisen:** FR-1, FR-6.
 - **Keuze:** `totaal = liters × prijs + omrit`, waarbij de brandstof voor de omrit tegen de prijs van het station zelf wordt gerekend. De besparing is relatief aan het dichtstbijzijnde station (rond een punt) of het station met de kleinste omweg (langs een route).
-- **Reden:** volgens de code is dat wat je zonder zoeken zou doen; het verschil met je eigen tankinhoud is verwaarloosbaar.
+- **Reden:** dat is wat je zonder zoeken zou doen. De brandstof voor de rit wordt tegen de prijs van het station zelf gerekend; het verschil met je eigen tankinhoud is verwaarloosbaar.
 - **Afgewezen:** sorteren op literprijs (negeert de omrit, het hele doel van de app) en besparing ten opzichte van een gemiddelde (minder herkenbaar).
 
 ### D-5. Voorselectie voor de routeserver
@@ -376,7 +375,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 
 - **Besluit door:** Jeroen (OSRM), Claude (terugval). **Eisen:** FR-5, NFR-9, NFR-15.
 - **Keuze:** de tabel-API van OSRM; bij uitval een schatting (1,3 × hemelsbreed, 50 km/u), duidelijk gemarkeerd met een tilde.
-- **Reden:** een openbare, gratis dienst zonder sleutel. De server-URL is instelbaar; volgens de code kan een eigen server gebruikt worden als de limiet wordt bereikt.
+- **Reden:** een openbare, gratis dienst zonder sleutel. De server-URL is instelbaar; bij het bereiken van de limiet kan een eigen server worden gebruikt.
 - **Afgewezen:** alleen hemelsbrede afstanden (te onnauwkeurig bij rivieren en grenzen) en een betaalde routeservice.
 
 ### D-7. Omweg als verschil van twee tabellen
@@ -390,21 +389,21 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 
 - **Besluit door:** Claude. **Eisen:** FR-8, FR-9, FR-4.
 - **Keuze:** cirkels van 20 km langs de routelijn; de zoekbreedte volgt uit de tijdlimiet.
-- **Reden:** volgens de code blijft 20 km ruim onder de 25 km die Tankerkönig toestaat, ook na de marge van de cache. Verder zoeken dan ongeveer 0,4 km per toegestane minuut heeft geen zin omdat een zijstap van d km ongeveer 2d km rijden kost.
+- **Reden:** 20 km blijft ruim onder de 25 km die Tankerkönig toestaat, ook na de marge van de cache. Verder zoeken dan ongeveer 0,4 km per toegestane minuut heeft geen zin omdat een zijstap van d km ongeveer 2d km rijden kost.
 - **Afgewezen:** één groot kader om de hele route (zou de limieten van de bronnen overschrijden en veel onnodige stations ophalen).
 
 ### D-9. Cache per gebied, niet per zoekopdracht
 
 - **Besluit door:** Jeroen (wens voor lokale cache), Claude (uitwerking). **Eisen:** FR-7, NFR-9, NFR-10.
 - **Keuze:** gebieden op een raster met een marge, geldig tot 12 uur, met terugval op oudere gegevens (tot 7 dagen) als een bron uitvalt, en een duidelijke melding.
-- **Reden:** volgens de code verschilt je positie bij elke berekening een beetje, zeker met een apparaatlocatie; een cache per exacte zoekopdracht zou dus bijna nooit raak zijn.
+- **Reden:** je positie verschilt bij elke berekening een beetje, zeker met een apparaatlocatie; een cache per exacte zoekopdracht zou dus bijna nooit raak zijn.
 - **Afgewezen:** cache per zoekopdracht; geen cache (meer aanvragen bij de bronnen, en geen terugval bij uitval).
 
 ### D-10. De "open"-vlag vervalt bij oude gegevens
 
 - **Besluit door:** Claude. **Eisen:** FR-7.
 - **Keuze:** bij gegevens ouder dan 30 minuten wordt de open- of dicht-status genegeerd.
-- **Reden:** volgens de code kan een station dat 's middags open was nu dicht zijn en andersom.
+- **Reden:** een station dat 's middags open was, kan nu dicht zijn en andersom.
 
 ### D-11. Dubbele stations uit twee bronnen
 
@@ -480,15 +479,15 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 
 - **Besluit door:** Jeroen (één repo, GHCR, Ingress), Claude (verpakking). **Eisen:** NFR-2, NFR-3, NFR-4, FR-27.
 - **Keuze:** `Dockerfile` in `goedkoop-tanken/`, maar de bouwcontext is de hoofdmap, zodat `fuelfinder/` rechtstreeks wordt meegenomen. Een script maakt een map voor lokaal testen.
-- **Reden:** de code staat maar op één plek. Het oude `build.yaml` is volgens de HA-migratienotities verouderd; labels en argumenten staan nu in het `Dockerfile`.
+- **Reden:** de code staat maar op één plek. Het oude `build.yaml` is verouderd; labels en argumenten staan nu in het `Dockerfile`.
 - **Afgewezen:** de code kopiëren naar de add-on-map (dubbele code die uit de pas loopt); de add-on bij elke installatie op de Pi bouwen (Jeroen koos kant-en-klare images).
 
 ### D-22. Bouwen met standaard Docker-acties, release alleen via een tag
 
 - **Besluit door:** Jeroen (tag, geen release bij gewone push), Claude (acties). **Eisen:** NFR-4, NFR-5, NFR-16.
 - **Keuze:** `docker/build-push-action` met QEMU voor amd64 en arm64 naar één multi-arch manifest; de tag moet gelijk zijn aan `version`.
-- **Reden:** de voorbeeldacties van Home Assistant (`home-assistant/builder`) kon ik niet volledig controleren; de standaardacties zijn breed gedocumenteerd.
-- **Afgewezen:** de Home Assistant-builder-actie (invoer niet geverifieerd); losse images per architectuur (een manifest laat Home Assistant zelf kiezen).
+- **Reden:** de standaardacties zijn breed gedocumenteerd en vragen geen aannames over een Home Assistant-specifieke bouwactie.
+- **Afgewezen:** de Home Assistant-builder-actie; losse images per architectuur (een manifest laat Home Assistant zelf kiezen).
 
 ### D-23. LF-regeleinden afdwingen
 
