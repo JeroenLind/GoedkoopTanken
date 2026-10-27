@@ -165,6 +165,34 @@
   .pin.base { border-style: dashed; }
   .pin.sel { box-shadow: 0 0 0 4px rgba(29,95,209,.55), 0 1px 4px rgba(0,0,0,.35); transform: scale(1.12); }
   tbody tr[tabindex] { cursor: pointer; }
+
+  /* Telefoon: elk station wordt een kaartje in plaats van een brede tabel die je moet scrollen.
+     Eerste regel: naam en totaalbedrag; daaronder de cijfers in drie kolommen met label; onderaan navigeren. */
+  @media (max-width: 700px) {
+    .tablewrap { overflow: visible; border-top: 2px solid var(--ink); border-bottom: 0; }
+    table { min-width: 0; display: block; }
+    thead { display: none; }
+    tbody { display: block; }
+    tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; position: relative;
+      padding: 12px 12px 12px 2.6rem; border-bottom: 1px solid var(--line); }
+    tbody tr.gap { display: block; padding: 8px 12px; }
+    tbody tr.gap td { display: block; padding: 0; text-align: center; color: var(--ink-soft); border: 0; }
+    td { display: block; padding: 0; border: 0; text-align: left; white-space: normal; }
+    td[data-label]::before { content: attr(data-label); display: block; font-size: .72rem; line-height: 1.2;
+      color: var(--ink-soft); font-weight: 500; margin-bottom: 1px; }
+    td.rank { position: absolute; left: 0; top: 12px; width: 2.4rem; text-align: center; font-size: 1.1rem; }
+    td.station { grid-column: 1 / span 2; min-width: 0; }
+    td.station .sname { font-size: 1.05rem; line-height: 1.25; }
+    td.total { grid-column: 3; grid-row: 1; text-align: right; font-size: 1.25rem; line-height: 1.1; }
+    td.total::before { text-align: right; }
+    td.navcell { grid-column: 1 / -1; }
+    td.navcell .navbtn { width: 100%; padding: 9px 10px; }
+    tbody tr.best td { background: transparent; }
+    tbody tr.best { background: var(--sign-tint); border-bottom-color: var(--sign); box-shadow: inset 6px 0 0 var(--sign); }
+    tr.best td.rank { box-shadow: none; }
+    tbody tr.sel { background-image: linear-gradient(rgba(29,95,209,.12), rgba(29,95,209,.12)); }
+    tbody tr.sel td { background-image: none; }
+  }
   tr.sel td { background-image: linear-gradient(rgba(29,95,209,.12), rgba(29,95,209,.12)); }
   .sub.src { margin-top: 1px; }
   .detail { margin: 0 0 18px; border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 12px 16px 10px; }
@@ -1107,15 +1135,15 @@ function render(d) {
         h("span", { class: "sname" }, r.name), r.is_baseline && h("span", { class: "tag" }, route ? "minste omweg" : "dichtstbij"),
         h("span", { class: "sub" }, r.address),
         h("span", { class: "sub src", title: "Uit welke gegevensbron dit station komt" }, sourceNote(r))),
-      h("td", null, nl(r.price, 3)),
-      h("td", null, nl(r.fill_cost, 2)),
-      h("td", null, nl(r.km_round_trip, 1) + " km", est),
-      h("td", null, r.minutes + " min", est),
-      h("td", null, nl(r.detour_cost, 2)),
-      h("td", { class: "total" }, nl(r.total, 2)),
-      !route && h("td", null, r.is_baseline ? "–" : (r.extra_min > 0 ? "+" : "") + r.extra_min + " min"),
-      h("td", { class: r.saving > 0 ? "gain" : r.saving < 0 ? "loss" : "" }, nl(r.saving, 2)),
-      h("td", null, navButton(r)));
+      h("td", { "data-label": "Prijs €/l" }, nl(r.price, 3)),
+      h("td", { "data-label": "Tank €" }, nl(r.fill_cost, 2)),
+      h("td", { "data-label": route ? "Extra km" : "Retour" }, nl(r.km_round_trip, 1) + " km", est),
+      h("td", { "data-label": route ? "Omweg" : "Tijd" }, r.minutes + " min", est),
+      h("td", { "data-label": "Omrit €" }, nl(r.detour_cost, 2)),
+      h("td", { class: "total", "data-label": "Totaal €" }, nl(r.total, 2)),
+      !route && h("td", { "data-label": "Extra tijd" }, r.is_baseline ? "–" : (r.extra_min > 0 ? "+" : "") + r.extra_min + " min"),
+      h("td", { class: r.saving > 0 ? "gain" : r.saving < 0 ? "loss" : "", "data-label": "Besparing €" }, nl(r.saving, 2)),
+      h("td", { class: "navcell" }, navButton(r)));
     res.rows.set(r.rank, tr);
     if (wantMap) {
       tr.addEventListener("click", (e) => { if (!e.target.closest("button, a")) selectStation(d, r, true); });
