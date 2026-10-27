@@ -260,7 +260,7 @@ class RoutingTests(unittest.TestCase):
             raise AssertionError(url)
         with mock.patch.object(http, "fetch_json", fake):
             out = Router().distances(HOME, [(51.91, 6.6), (51.99, 6.6)])
-        self.assertEqual(tuple(out[0]), (1.0, 1.5, 2.0, 3.0, False))
+        self.assertEqual(tuple(out[0])[:5], (1.0, 1.5, 2.0, 3.0, False))
         self.assertTrue(out[1].estimated)  # terugweg onbekend -> geschat
 
     def test_osrm_failure_falls_back_to_estimate(self):

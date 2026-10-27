@@ -24,7 +24,7 @@ def cmd_find(args, cfg) -> int:
         consumption=args.consumption, fill=args.fill, radius=args.radius,
         providers=args.providers.split(",") if args.providers else None,
         no_routing=args.no_routing, max_extra_min=args.max_extra_min,
-        no_time_limit=args.no_time_limit, refresh=args.refresh, no_cache=args.no_cache,
+        max_km=args.max_km, no_time_limit=args.no_time_limit, refresh=args.refresh, no_cache=args.no_cache,
         route=bool(args.to), dest_address=args.to, corridor_km=args.corridor)
     try:
         out = service.search(cfg, params)
@@ -55,6 +55,9 @@ def cmd_find(args, cfg) -> int:
         return 1
 
     results = out.results
+    if out.max_km is not None:
+        print(f"\nMaximale afstand: stations verder dan {eur(out.max_km, 0)} km rijden vanaf het vertrek "
+              f"zijn weggelaten ({len(out.too_far)})")
     if out.max_extra_min is not None:
         what = "omweg" if route else "extra rijtijd t.o.v. het dichtstbijzijnde station"
         print(f"\nTijdlimiet: maximaal {eur(out.max_extra_min, 0)} min {what} "
@@ -242,6 +245,8 @@ def main(argv=None) -> int:
                    "werkadres uit config.toml); het vertrek is --address/--lat/--lon of het thuisadres")
     f.add_argument("--corridor", type=float, metavar="KM",
                    help="alleen met --to: hoe ver naast de route gezocht wordt (standaard afgeleid van de tijdlimiet)")
+    f.add_argument("--max-km", type=float, metavar="KM",
+                   help="alleen met --to: maximale rijafstand van het vertrek naar het station (bijna lege tank)")
     f.add_argument("--top", type=int, help="aantal resultaten")
     f.add_argument("--max-extra-min", type=float, metavar="MIN",
                    help="maximaal aantal minuten extra rijtijd t.o.v. het dichtstbijzijnde station "

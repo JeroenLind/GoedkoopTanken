@@ -34,6 +34,7 @@ class Route(NamedTuple):
     min_out: float
     min_back: float
     estimated: bool
+    km_to: float | None = None  # alleen bij een route: rijafstand van het vertrek naar het station
 
 
 def _estimate(home, point) -> Route:
@@ -46,7 +47,8 @@ def _estimate_detour(a, b, point) -> Route:
     extra_air = (haversine_km(a[0], a[1], point[0], point[1]) + haversine_km(point[0], point[1], b[0], b[1])
                  - haversine_km(a[0], a[1], b[0], b[1]))
     km = max(0.0, extra_air) * DETOUR_FACTOR
-    return Route(km, 0.0, km / FALLBACK_SPEED_KMH * 60, 0.0, True)
+    km_to = haversine_km(a[0], a[1], point[0], point[1]) * DETOUR_FACTOR
+    return Route(km, 0.0, km / FALLBACK_SPEED_KMH * 60, 0.0, True, km_to)
 
 
 class Router:
@@ -156,5 +158,5 @@ class Router:
                 continue
             extra_km = max(0.0, (to_s[0] + from_s[0] - direct_km) / 1000.0)
             extra_min = max(0.0, (to_s[1] + from_s[1] - direct_s) / 60.0)
-            result.append(Route(extra_km, 0.0, extra_min, 0.0, False))
+            result.append(Route(extra_km, 0.0, extra_min, 0.0, False, to_s[0] / 1000.0))
         return result

@@ -47,7 +47,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-9 | Bij een route is de omweg het aantal extra kilometers en minuten ten opzichte van de directe route; de tijdlimiet geldt voor die omweg. | Jeroen | Klaar |
 | FR-10 | De bestemming kan als adres worden getypt of op een kaart worden gekozen. | Jeroen | Klaar |
 | FR-11 | Vertrek en bestemming kunnen worden omgedraaid (voor de terugweg). | Jeroen | Klaar |
-| FR-12 | Bij een route kan de gebruiker een maximaal te rijden afstand invullen, voor het geval de tank bijna leeg is. | Jeroen | Gepland |
+| FR-12 | Bij een route kan de gebruiker een maximaal te rijden afstand invullen (rijafstand van het vertrek naar het station), voor het geval de tank bijna leeg is. Stations die verder weg liggen vallen af. | Jeroen | Klaar |
 
 ### 3.3 Vaste adressen
 
@@ -145,7 +145,6 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 ## 6. Bewust uitgesteld (buiten versie 1)
 
 - Sensoren, meldingen en services in Home Assistant.
-- Een maximaal te rijden afstand bij een route staat wel gepland (FR-12).
 
 ## 7. Open punten
 

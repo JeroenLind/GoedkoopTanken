@@ -36,7 +36,7 @@ def _build_results(candidates: list[Station], routes, fuel: str, fill_liters: fl
         detour_cost = round((km_out + km_back) * consumption_l_per_100km / 100 * price, 2)
         results.append(Result(s, price, km_out, km_back, route.estimated, fill_cost, detour_cost,
                               round(fill_cost + detour_cost, 2),
-                              round(route.min_out + route.min_back)))
+                              round(route.min_out + route.min_back), km_to_station=route.km_to))
 
     baseline = min(results, key=lambda r: r.km_out + r.km_back)
     baseline.is_baseline = True
@@ -87,6 +87,8 @@ def rank_along(
     consumption_l_per_100km: float,
     router: Router,
     max_candidates: int = ALONG_CANDIDATES,
+    max_km: float | None = None,
+    too_far: list | None = None,
 ) -> list[Result]:
     """Zoals `rank`, maar voor een rit van `start` naar `end` met tanken onderweg.
 
@@ -94,6 +96,10 @@ def rank_along(
     `km_out` en `min_out` van elk resultaat zijn dus de extra kilometers en minuten. De referentie
     (`is_baseline`) is het station met de kleinste omweg. Alleen stations binnen `corridor_km`
     hemelsbreed van de route doen mee.
+
+    Met `max_km` vallen stations af waarvan de rijafstand vanaf `start` groter is (bijna lege tank);
+    die komen in `too_far` te staan. Dat gebeurt vóór het bepalen van de referentie, zodat die
+    altijd haalbaar is.
     """
     priced = [s for s in stations if fuel in s.prices and s.is_open is not False]
     off = {s.id: distance_to_polyline_km(s.lat, s.lon, line) for s in priced}
@@ -111,6 +117,14 @@ def rank_along(
     candidates = list({s.id: s for s in by_bound + closest}.values())
 
     routes = router.detours(start, end, [(s.lat, s.lon) for s in candidates])
+    if max_km is not None:
+        reachable = [r.km_to is None or r.km_to <= max_km for r in routes]
+        if too_far is not None:
+            too_far.extend(s for s, ok in zip(candidates, reachable) if not ok)
+        candidates = [s for s, ok in zip(candidates, reachable) if ok]
+        routes = [r for r, ok in zip(routes, reachable) if ok]
+        if not candidates:
+            return []
     return _build_results(candidates, routes, fuel, fill_liters, consumption_l_per_100km)
 
 

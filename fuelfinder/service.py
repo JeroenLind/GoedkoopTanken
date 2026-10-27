@@ -45,6 +45,7 @@ class SearchParams:
     providers: list[str] | None = None
     no_routing: bool = False
     max_extra_min: float | None = None
+    max_km: float | None = None  # alleen bij een route: maximale rijafstand naar het station
     no_time_limit: bool = False
     refresh: bool = False      # cache negeren en alles opnieuw ophalen
     no_cache: bool = False     # voor deze zoekopdracht helemaal geen cache gebruiken
@@ -83,6 +84,8 @@ class SearchOutput:
     route_km: float = 0.0     # lengte en rijtijd van de directe route
     route_min: float = 0.0
     corridor_km: float = 0.0
+    max_km: float | None = None   # maximale rijafstand naar het station (alleen bij een route)
+    too_far: list = field(default_factory=list)  # stations die daarvoor te ver weg liggen
     # Alles wat bekeken is, voor de kaart en de export:
     stations: list = field(default_factory=list)   # alle stations na samenvoegen van de bronnen
     dropped: list = field(default_factory=list)    # (weggelaten dubbel, winnend station)
@@ -183,6 +186,9 @@ def search(cfg: Config, params: SearchParams | None = None) -> SearchOutput:
     )
     if dest:
         out.mode, out.dest, out.dest_label = "route", (dest[0], dest[1]), dest[2]
+        out.max_km = p.max_km if p.max_km else None
+    elif p.max_km:
+        warnings.append("De maximale afstand geldt alleen bij zoeken langs een route en is genegeerd.")
 
     try:
         providers = build_providers(cfg, p.providers)
@@ -216,12 +222,17 @@ def search(cfg: Config, params: SearchParams | None = None) -> SearchOutput:
         return out
 
     if out.mode == "route":
-        ranked = calc.rank_along(stations, out.home, out.dest, line, out.corridor_km, fuel, fill, real, router)
+        ranked = calc.rank_along(stations, out.home, out.dest, line, out.corridor_km, fuel, fill, real, router,
+                                 max_km=out.max_km, too_far=out.too_far)
     else:
         ranked = calc.rank(stations, (home_lat, home_lon), fuel, fill, real, router)
     out.ranked = ranked
     if not ranked:
         where = f"binnen {out.corridor_km:.0f} km van de route " if out.mode == "route" else ""
+        if out.too_far:
+            out.notice = (f"Geen station binnen {out.max_km:g} km rijden gevonden "
+                          f"({len(out.too_far)} liggen verder weg).")
+            return out
         out.notice = f"Geen open stations {where}met {FUEL_LABELS[fuel]}-prijs gevonden."
         return out
 
@@ -274,6 +285,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
     fuel_label = FUEL_LABELS[out.fuel]
     result_rank = {_key(r.station): i for i, r in enumerate(out.results, 1)}
     ranked = {_key(r.station): r for r in out.ranked}
+    too_far = {_key(s) for s in out.too_far}
     unit = "omweg" if route else "extra rijtijd t.o.v. het dichtstbijzijnde station"
 
     def where(s) -> tuple[float, str]:
@@ -291,6 +303,8 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
             status = "gesloten"
         elif route and dist > out.corridor_km:
             status = f"buiten de zoekbreedte ({dist:.1f} km naast de route, maximaal {out.corridor_km:.0f})"
+        elif k in too_far:
+            status = f"te ver weg (meer dan {out.max_km:g} km rijden vanaf het vertrek)"
         elif k in result_rank:
             status = "getoond in de uitkomst"
         elif k in ranked:
@@ -320,6 +334,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
                 "detour_cost": r.detour_cost, "total": r.total,
                 "saving_vs_reference": r.saving_vs_baseline,
                 "is_reference": r.is_baseline, "distance_estimated": r.estimated,
+                **({"km_to_station": round(r.km_to_station, 2)} if route and r.km_to_station is not None else {}),
             }
         rows.append(row)
     for s, twin in out.dropped:
@@ -346,6 +361,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
             "radius_km": None if route else out.radius_km,
             "corridor_km": out.corridor_km if route else None,
             "max_extra_min": out.max_extra_min,
+            "max_km": out.max_km if route else None,
             "searched_areas": [{"lat": a, "lon": b, "radius_km": c} for a, b, c in out.searched_areas],
         },
         "sources": {name: {"label": SOURCE_LABELS.get(name, name), "message": msg,
@@ -357,7 +373,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
                    "line": [[round(a, 5), round(b, 5)] for a, b in out.route_line]} if route else None),
         "counts": {"stations_seen": len(out.stations), "duplicates_dropped": len(out.dropped),
                    "routed": len(out.ranked), "in_results": len(out.results),
-                   "hidden_by_time_limit": out.hidden_by_time_limit},
+                   "hidden_by_time_limit": out.hidden_by_time_limit, "too_far": len(out.too_far)},
         "stations": rows,
     }
 

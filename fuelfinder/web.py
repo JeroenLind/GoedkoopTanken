@@ -61,6 +61,7 @@ def serialize(out: service.SearchOutput, max_results: int) -> dict:
             "total": r.total, "km_round_trip": round(r.km_round_trip, 1),
             "km_out": round(r.km_out, 2), "km_back": round(r.km_back, 2), "km_exact": round(r.km_round_trip, 2),
             "detour_liters": round(r.km_round_trip * out.real_consumption / 100, 2),
+            "km_to_station": round(r.km_to_station, 1) if r.km_to_station is not None else None,
             "minutes": r.min_round_trip, "extra_min": r.extra_min_vs_baseline,
             "saving": r.saving_vs_baseline, "is_baseline": r.is_baseline,
             "estimated": r.estimated, "lat": s.lat, "lon": s.lon, "nav": nav,
@@ -82,6 +83,7 @@ def serialize(out: service.SearchOutput, max_results: int) -> dict:
                    "line": [[round(a, 5), round(b, 5)] for a, b in out.route_line]} if out.mode == "route" else None),
         "others": others,
         "corridor_km": out.corridor_km if out.mode == "route" else None,
+        "max_km": out.max_km, "too_far": len(out.too_far),
         "vehicle": ({"plate": veh.plate, "description": veh.description} if veh else None),
         "fuel": out.fuel, "fuel_label": FUEL_LABELS[out.fuel],
         "consumption": {"official": out.official_consumption, "real": out.real_consumption,
@@ -133,6 +135,7 @@ class App:
                 raise ValueError("Bestemming: vul zowel breedte- als lengtegraad in, of geen van beide")
             params.route, params.dest_lat, params.dest_lon = True, lat, lon
             params.dest_address = str(dest.get("address") or "").strip() or None
+            params.max_km = config._num(body.get("max_km"), "Maximale afstand", 0, 2000, optional=True) or None
         out = service.search(cfg, params)
         with self._lock:
             self._last = (out, cfg.max_results)

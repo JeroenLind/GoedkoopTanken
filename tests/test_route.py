@@ -100,6 +100,35 @@ class RouteServiceTests(unittest.TestCase):
         self.assertEqual(r.min_round_trip, round((via - direct) / 60 * 60))
         self.assertEqual(r.detour_cost, round(r.km_round_trip * out.real_consumption / 100 * r.price, 2))
 
+    def test_max_km_drops_stations_too_far_from_the_start(self):
+        out = self.go(max_km=10, corridor_km=10)
+        self.assertEqual([r.station.name for r in out.results], ["ANWB-4"])   # de rest ligt ruim 20 km weg
+        self.assertTrue(out.baseline.station.name == "ANWB-4")                # referentie is haalbaar
+        self.assertEqual({s.name for s in out.too_far}, {"ANWB-1", "ANWB-2"})
+        self.assertLessEqual(out.results[0].km_to_station, 10)
+
+    def test_max_km_is_driving_distance_from_start(self):
+        out = self.go(max_km=500, corridor_km=10)
+        r = next(x for x in out.results if x.station.name == "ANWB-1")
+        self.assertAlmostEqual(r.km_to_station, geo.haversine_km(*A, r.station.lat, r.station.lon) * 1.2, places=2)
+        self.assertEqual(out.too_far, [])
+
+    def test_max_km_nothing_reachable_gives_notice(self):
+        out = self.go(max_km=1, corridor_km=10)
+        self.assertEqual(out.results, [])
+        self.assertIn("Geen station binnen 1 km", out.notice)
+
+    def test_max_km_ignored_when_searching_around(self):
+        out = service.search(self.cfg, service.SearchParams(max_km=10))
+        self.assertIsNone(out.max_km)
+        self.assertTrue(any("alleen bij zoeken langs een route" in w for w in out.warnings))
+
+    def test_max_km_status_in_export(self):
+        out = self.go(max_km=10, corridor_km=10)
+        rows = {r["name"]: r for r in service.export_data(out)["stations"]}
+        self.assertIn("te ver weg", rows["ANWB-1"]["status"])
+        self.assertEqual(service.export_data(out)["counts"]["too_far"], 2)
+
     def test_time_limit_applies_to_the_detour_itself(self):
         out = self.go(max_extra_min=2, corridor_km=10)
         names = [r.station.name for r in out.results]

@@ -54,6 +54,7 @@ class Result:
     saving_vs_baseline: float = 0.0
     extra_min_vs_baseline: int = 0  # = min_round_trip - die van het dichtstbijzijnde station
     is_baseline: bool = False
+    km_to_station: float | None = None  # alleen bij een route: rijafstand vertrek -> station
 
     @property
     def km_round_trip(self) -> float:

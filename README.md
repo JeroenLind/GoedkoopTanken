@@ -60,6 +60,8 @@ Hoe het rekent:
 - De tijdlimiet (standaard 30 min) geldt voor de omweg zelf. Hij bepaalt ook hoe breed er naast de route
   gezocht wordt: ongeveer 0,4 km per toegestane minuut, tussen 3 en 15 km (zonder limiet 10 km).
   Met `--corridor` stel je dat zelf in.
+- Optioneel stel je een maximale rijafstand in (`--max-km`, in de webinterface "Max. afstand"), voor als de tank
+  bijna leeg is: stations die verder dan dat vanaf je vertrek liggen worden weggelaten, ook als referentie.
 - Stations worden opgehaald met cirkels van 20 km langs de route. Die komen ook in de cache terecht,
   dus dezelfde dagelijkse route is de tweede keer meteen klaar.
 - De navigatieknop opent Google Maps en Apple Maps met het station als tussenstop en je bestemming

@@ -171,6 +171,16 @@ class WebTests(unittest.TestCase):
     def route_body(self, dest):
         return {**self.SEARCH, "mode": "route", "dest": dest}
 
+    def test_route_search_with_max_km(self):
+        status, data, _ = self.call("POST", "/api/search", {**self.route_body({"lat": "52.0", "lon": "6.6"}), "max_km": "0,5"})
+        self.assertEqual(status, 200, data)
+        self.assertEqual(data["max_km"], 0.5)
+        self.assertEqual(data["results"], [])
+        status, data, _ = self.call("POST", "/api/search", {**self.route_body({"lat": "52.0", "lon": "6.6"}), "max_km": "abc"})
+        self.assertEqual(status, 400)
+        status, data, _ = self.call("POST", "/api/search", {**self.route_body({"lat": "52.0", "lon": "6.6"}), "max_km": ""})
+        self.assertEqual((status, data["max_km"]), (200, None))
+
     def test_route_search_through_api(self):
         status, data, _ = self.call("POST", "/api/search", self.route_body({"lat": "52.0", "lon": "6.6"}))
         self.assertEqual(status, 200, data)

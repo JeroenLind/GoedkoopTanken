@@ -66,6 +66,7 @@
   .bar > .locfield { grid-row: 2; grid-column: 1; }
   .bar > .destfield { grid-row: 3; grid-column: 1; }
   .bar > .litersfield { grid-row: 2; grid-column: 2; }
+  .bar > .maxkmfield { grid-row: 3; grid-column: 2; }
   .bar > .runcell { grid-row: 2; grid-column: 3; }
   .bar .status + .status { margin-top: -6px; }
   #navnote { padding: 2px 12px 6px; max-width: 24ch; font-size: .78rem; color: var(--ink-soft); }
@@ -277,6 +278,7 @@
       </div>
     </label>
     <label class="litersfield"><span>Liters tanken</span><input type="text" id="fill" inputmode="decimal"></label>
+    <label class="maxkmfield" id="maxkmfield" hidden><span>Max. afstand (km)</span><input type="text" id="maxkm" inputmode="decimal" placeholder="geen limiet" title="Alleen stations binnen deze rijafstand vanaf je vertrek (bijna lege tank). Leeg = geen limiet."></label>
     <div class="runcell"><button type="submit" class="btn primary" id="run">Bereken</button></div>
     <p class="status" id="locstatus" role="status"></p>
     <p class="status" id="deststatus" role="status" hidden></p>
@@ -775,6 +777,7 @@ function setMode(m, persist = true) {
   $("mode-around").setAttribute("aria-pressed", String(!route));
   $("mode-route").setAttribute("aria-pressed", String(route));
   $("destfield").hidden = !route;
+  $("maxkmfield").hidden = !route;
   $("deststatus").hidden = !route;
   $("loclabel").textContent = route ? "Vertrek" : "Huidige locatie";
   if (route && !$("dest").value.trim()) useDefaultPlace();
@@ -875,6 +878,7 @@ async function run(refresh = false) {
   try {
     const body = { settings, refresh, mode };
     if (mode === "route") {
+      body.max_km = $("maxkm").value.trim();
       body.dest = dest.lat != null && destLabel === dest.label
         ? { lat: String(dest.lat), lon: String(dest.lon), address: destLabel } : { address: destLabel };
     }
@@ -1164,6 +1168,8 @@ function render(d) {
   if (d.any_estimated) legend.append(h("p", null, "~ = geschatte afstand en tijd (route niet beschikbaar)."));
   if (d.max_extra_min != null) legend.append(h("p", null,
     `Tijdlimiet: stations met meer dan ${nl(d.max_extra_min, 0)} minuten ${route ? "omweg" : "extra rijtijd"} zijn weggelaten (${d.hidden_by_time_limit}).`));
+  if (d.max_km != null) legend.append(h("p", null,
+    `Maximale afstand: stations verder dan ${nl(d.max_km, 0)} km rijden vanaf je vertrek zijn weggelaten (${d.too_far}).`));
   main.append(legend);
 
   const notes = h("div", { class: "notes" });

@@ -195,6 +195,7 @@ sequenceDiagram
 - **Zoekbreedte**: standaard 0,4 km per toegestane minuut omweg, begrensd tussen 3 en 15 km (zonder limiet 10 km). Reden: een zijstap van d km kost ongeveer 2d km rijden.
 - **Zoekgebieden**: cirkels met een straal van 20 km langs de route, op een afstand van elkaar die uit de zoekbreedte volgt (`stap = 2 × √(r² − breedte²)`, met een marge van 1,1 voor bochten). Maximaal 20 cirkels, ruim 600 km route.
 - **Omweg**: voor elk station `(A naar station) + (station naar B) − (A naar B)`. Dat gaat in twee aanvragen aan de routeserver voor alle kandidaten tegelijk (D-7).
+- **Maximale afstand** (optioneel): stations met een rijafstand vanaf het vertrek boven de grens vallen af voordat de referentie wordt bepaald (D-24).
 - **Bestemming** komt uit coördinaten, een adres, of de naam van een vast adres. Een lege bestemming betekent het vaste adres "Werk", als dat bestaat; anders volgt een foutmelding (5.6).
 - **Vertrek en bestemming bijna gelijk** (minder dan 0,3 km): foutmelding, met de verwijzing naar zoeken rond een punt.
 
@@ -495,6 +496,14 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Keuze:** `.gitattributes` houdt scripts, het `Dockerfile` en YAML op LF.
 - **Reden:** Jeroen werkt op Windows; Windows-regeleinden breken de eerste regel (`#!/command/with-contenv bashio`) van de startscripts.
 
+### D-24. Maximale afstand als rijafstand vanaf het vertrek, vóór de referentie
+
+- **Besluit door:** Jeroen (wens), Claude (uitwerking). **Eisen:** FR-12.
+- **Keuze:** alleen bij een route. De rijafstand van het vertrek naar het station komt uit dezelfde tabelaanvraag als de omweg (D-7), dus zonder extra aanvraag. Stations boven de grens vallen af, en pas daarna wordt de referentie (kleinste omweg) bepaald.
+- **Reden:** met een bijna lege tank telt of je het station haalt, niet hoeveel je omrijdt. De referentie moet haalbaar zijn, anders is de besparing ten opzichte van een station dat je niet haalt misleidend. Zonder routeserver geldt de geschatte afstand (1,3 × hemelsbreed).
+- **Afgewezen:** de grens op de omweg zetten (dat is de tijdlimiet, FR-4, en zegt niets over het bereiken van het station); de grens pas na de referentie toepassen (referentie kan onhaalbaar zijn).
+- **Zichtbaar:** de uitkomst en de export noemen hoeveel stations te ver weg lagen, en de export geeft per station de status "te ver weg" en `km_to_station`. Zonder haalbaar station staat er een melding.
+
 ## 9. Traceerbaarheid: eisen naar ontwerp
 
 | Eis | Ontwerpkeuze | Modules en tests |
@@ -509,7 +518,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-8, FR-9 Langs een route | D-7, D-8 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |
 | FR-10 Bestemming op kaart | D-16 | `static/index.html`; handmatig en browsertest |
 | FR-11 Omdraaien | D-15 | `static/index.html` |
-| FR-12 Maximale afstand | Nog niet ontworpen (gepland) | |
+| FR-12 Maximale afstand | D-24 | `calc.rank_along`, `routing._osrm_detours`, `service.export_data`; `test_route.py` |
 | FR-13 tot FR-16 Vaste adressen | D-13, D-16 | `config.clean_places`, `service.resolve_destination`; `test_route.py`, `test_web.py` |
 | FR-17 Kaart met route | D-16 | `static/index.html`, `App.via`; `test_web.py` |
 | FR-18 Bron per station | D-11 | `web.serialize`, `static/index.html` |
