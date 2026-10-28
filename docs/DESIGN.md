@@ -357,6 +357,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Keuze:** elke bron is een klasse met `fetch(lat, lon, straal)` in één bestand, geregistreerd in `providers/__init__.py`. Elke bron vertaalt zijn eigen brandstofnamen naar vaste namen.
 - **Reden:** een nieuwe bron toevoegen is één bestand plus één regel.
 - **Afgewezen:** bronnen rechtstreeks in de zoeklogica opnemen.
+- **Risico (O-6):** de ANWB-bron is geen officiële API (zie de toelichting in `providers/anwb.py`) en kan wijzigen of verdwijnen. Door deze keuze is een vervangende bron één nieuw bestand; of de DirectLease TankService een geschikte vervanger is, is niet onderzocht.
 
 ### D-4. Kostenmodel: totaal en referentie
 

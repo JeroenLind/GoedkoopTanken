@@ -156,6 +156,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | O-3 | Contactadres voor de User-Agent naar OpenStreetMap-diensten (optionele add-on-optie `contact`). | Jeroen |
 | O-4 | Minimale Home Assistant-versie. | Te bepalen bij testen |
 | O-5 | Toegankelijkheid (NFR-8) nog niet getoetst met toetsenbord en schermlezer. | Te plannen |
+| O-6 | **Risico: ANWB.** De ANWB-bron levert de Nederlandse en Belgische prijzen (FR-2, FR-29), maar is geen gedocumenteerde of officiële API en kan zonder waarschuwing wijzigen of verdwijnen. Bij uitval valt de app terug op oudere prijzen met een melding (FR-7, NFR-9). Een mogelijke vervanger voor NL en BE is de DirectLease TankService (genoemd door pyfuelprices); die is nog niet onderzocht. | Jeroen |
 
 ## 8. Herleidbaarheid
 
