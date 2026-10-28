@@ -1,6 +1,6 @@
 # Goedkoop tanken
 
-Vindt het goedkoopste tankstation **inclusief de kosten van de omrit**, in Nederland en Duitsland.
+Vindt het goedkoopste tankstation **inclusief de kosten van de omrit**, in Nederland, Duitsland en België.
 
 ## Eerste keer instellen
 

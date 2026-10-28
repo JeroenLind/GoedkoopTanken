@@ -410,7 +410,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 
 - **Besluit door:** Claude. **Eisen:** FR-2, FR-18.
 - **Keuze:** binnen 75 m van een station van een andere bron telt één station; de bron die eerder in de lijst staat wint. Weggelaten dubbelen staan in de export.
-- **Reden:** ANWB en Tankerkönig dekken samen de grensstreek; zonder ontdubbelen kan hetzelfde station twee keer in de uitkomst staan. De grens van 75 m is een praktische keuze.
+- **Reden:** ANWB (Nederland en België) en Tankerkönig (Duitsland) dekken samen de grensstreek; zonder ontdubbelen kan hetzelfde station twee keer in de uitkomst staan. De grens van 75 m is een praktische keuze.
 
 ### D-12. Instellingen in de app, in één TOML-bestand
 
@@ -531,7 +531,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-26 Locatie uit tracker | D-17 | `ha.py`, `web.py`; `test_ha.py` |
 | FR-27 Zijbalk via Ingress | D-14, D-15, D-21 | `web.py` (Ingress-modus), `goedkoop-tanken/`; `test_ha.py`, `test_addon.py` |
 | FR-28 Alleen de web-UI in v1 | Beperking van de scope | |
-| FR-29 België | Nog niet ontworpen; past op `providers/base.py` zodra de bron is gekozen (O-6) | |
+| FR-29 België | D-3 (ANWB levert ook Belgische stations; geen codewijziging nodig) | `providers/anwb.py`; `test_all.py` (`test_anwb_returns_belgian_station_near_the_border`) |
 | NFR-1 Laptop | D-1, D-14 | `cli.py`, `web.py` |
 | NFR-2 tot NFR-4 Platform en images | D-21, D-22 | `goedkoop-tanken/`, `.github/workflows/` |
 | NFR-5 Release via tag | D-22 | `release.yaml`, `scripts/check_addon.py` |

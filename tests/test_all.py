@@ -131,6 +131,15 @@ class ProviderTests(unittest.TestCase):
         self.assertEqual(len(anwb_calls), 5)  # 1 mislukte + 4 deelvakken
         self.assertEqual(len(stations), 1)  # dubbele ids worden samengevoegd
 
+    def test_anwb_returns_belgian_station_near_the_border(self):
+        # Maaseik (België), ca. 17 km van Roermond: FR-29, België komt via ANWB binnen
+        net = FakeNet(); net.anwb_stations = [anwb_station(7, 51.0969, 5.7933, euro95=2.05, diesel=1.95)]
+        with mock.patch.object(http, "fetch_json", net):
+            stations = AnwbProvider().fetch(51.1942, 5.9876, 25)
+        self.assertEqual(len(stations), 1)
+        self.assertEqual(stations[0].prices, {PETROL95: 2.05, DIESEL: 1.95})
+        self.assertEqual(stations[0].source, "anwb")
+
     def test_anwb_drops_stations_outside_radius(self):
         net = FakeNet(); net.anwb_stations = [anwb_station(1, 52.5, 6.6, euro95=2.0)]
         with mock.patch.object(http, "fetch_json", net):

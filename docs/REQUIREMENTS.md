@@ -10,7 +10,7 @@ staat erin (herkomst "Bevestigd"). Open vragen staan apart in hoofdstuk 7.
 ## 1. Doel en scope
 
 Een app die het **goedkoopste tankstation** vindt, **inclusief de kosten van de omrit** (brandstof en tijd), over
-de grens heen (Roermond, Nederland en Duitsland). De app draait lokaal op een laptop (voor testen) en als
+de grens heen (Roermond, Nederland, Duitsland en België). De app draait lokaal op een laptop (voor testen) en als
 **Home Assistant-add-on** die in de zijbalk van Home Assistant te openen is, ook in de Home Assistant-app op de telefoon.
 
 Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijbalk en het lezen van de locatie van een telefoon-tracker.
@@ -32,7 +32,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | Nr. | Eis | Herkomst | Status |
 | --- | --- | --- | --- |
 | FR-1 | De app vindt het goedkoopste station inclusief de brandstofkosten van de omrit en de extra rijtijd, niet alleen de laagste literprijs. | Jeroen | Klaar |
-| FR-2 | Prijzen komen uit twee bronnen: ANWB Onderweg (Nederland) en Tankerkönig (Duitsland, met eigen API-sleutel van de gebruiker). | Jeroen | Klaar |
+| FR-2 | Prijzen komen uit twee bronnen: ANWB Onderweg (Nederland en België) en Tankerkönig (Duitsland, met eigen API-sleutel van de gebruiker). | Jeroen | Klaar |
 | FR-3 | Brandstof en verbruik kunnen uit het kenteken komen (RDW); de gebruiker kan brandstof en verbruik ook zelf opgeven. | Jeroen | Klaar |
 | FR-4 | De gebruiker wil maar beperkt omrijden: er is een instelbare tijdlimiet voor extra rijtijd (0 = geen limiet). | Jeroen | Klaar |
 | FR-5 | Afstanden en rijtijden komen uit een routeserver (OSRM); adressen worden opgezocht via Nominatim. Is routering niet beschikbaar, dan schat de app, en toont dat. | Jeroen | Klaar |
@@ -76,7 +76,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-23 | Instellingen worden in de app zelf gedaan en bewaard (niet in de Home Assistant-configuratiepagina); alleen technische opties staan in Home Assistant. | Jeroen | Klaar |
 | FR-24 | De ANWB-bron staat standaard aan, met een duidelijke disclaimer dat het geen officiële bron is, en kan worden uitgezet. | Jeroen | Klaar |
 | FR-25 | De standaard zoekstraal is 20 km. | Jeroen | Klaar |
-| FR-29 | België wordt als derde land toegevoegd, naast Nederland en Duitsland: stations in België komen in de zoekresultaten, met dezelfde omritlogica en dezelfde bronweergave. De prijsbron is nog niet gekozen (zie O-6). | Jeroen | Gepland |
+| FR-29 | België is het derde land, naast Nederland en Duitsland: stations in België komen in de zoekresultaten, met dezelfde omritlogica en dezelfde bronweergave. De prijzen komen uit ANWB Onderweg; Jeroen heeft gezien dat die bron Belgische prijzen levert. | Jeroen | Klaar |
 
 ### 3.6 Locatie en Home Assistant
 
@@ -156,7 +156,6 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | O-3 | Contactadres voor de User-Agent naar OpenStreetMap-diensten (optionele add-on-optie `contact`). | Jeroen |
 | O-4 | Minimale Home Assistant-versie. | Te bepalen bij testen |
 | O-5 | Toegankelijkheid (NFR-8) nog niet getoetst met toetsenbord en schermlezer. | Te plannen |
-| O-6 | Prijsbron voor België (FR-29): er is geen officiële open bron met prijzen per station gevonden. Kandidaat is Carbu.com; de gebruiksvoorwaarden daarvan zijn nog niet uitgezocht. | Jeroen, Claude |
 
 ## 8. Herleidbaarheid
 
