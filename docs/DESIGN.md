@@ -531,6 +531,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-26 Locatie uit tracker | D-17 | `ha.py`, `web.py`; `test_ha.py` |
 | FR-27 Zijbalk via Ingress | D-14, D-15, D-21 | `web.py` (Ingress-modus), `goedkoop-tanken/`; `test_ha.py`, `test_addon.py` |
 | FR-28 Alleen de web-UI in v1 | Beperking van de scope | |
+| FR-29 België | Nog niet ontworpen; past op `providers/base.py` zodra de bron is gekozen (O-6) | |
 | NFR-1 Laptop | D-1, D-14 | `cli.py`, `web.py` |
 | NFR-2 tot NFR-4 Platform en images | D-21, D-22 | `goedkoop-tanken/`, `.github/workflows/` |
 | NFR-5 Release via tag | D-22 | `release.yaml`, `scripts/check_addon.py` |

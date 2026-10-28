@@ -76,6 +76,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-23 | Instellingen worden in de app zelf gedaan en bewaard (niet in de Home Assistant-configuratiepagina); alleen technische opties staan in Home Assistant. | Jeroen | Klaar |
 | FR-24 | De ANWB-bron staat standaard aan, met een duidelijke disclaimer dat het geen officiële bron is, en kan worden uitgezet. | Jeroen | Klaar |
 | FR-25 | De standaard zoekstraal is 20 km. | Jeroen | Klaar |
+| FR-29 | België wordt als derde land toegevoegd, naast Nederland en Duitsland: stations in België komen in de zoekresultaten, met dezelfde omritlogica en dezelfde bronweergave. De prijsbron is nog niet gekozen (zie O-6). | Jeroen | Gepland |
 
 ### 3.6 Locatie en Home Assistant
 
@@ -155,6 +156,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | O-3 | Contactadres voor de User-Agent naar OpenStreetMap-diensten (optionele add-on-optie `contact`). | Jeroen |
 | O-4 | Minimale Home Assistant-versie. | Te bepalen bij testen |
 | O-5 | Toegankelijkheid (NFR-8) nog niet getoetst met toetsenbord en schermlezer. | Te plannen |
+| O-6 | Prijsbron voor België (FR-29): er is geen officiële open bron met prijzen per station gevonden. Kandidaat is Carbu.com; de gebruiksvoorwaarden daarvan zijn nog niet uitgezocht. | Jeroen, Claude |
 
 ## 8. Herleidbaarheid
 
