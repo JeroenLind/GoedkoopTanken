@@ -1,4 +1,6 @@
-# fuelfinder
+# Goedkoop tanken
+
+(Technische naam: `fuelfinder`; zo heet het pakket en het commando nog.)
 
 Zoekt het goedkoopste tankstation **inclusief de kosten van de omrit** (heen én terug naar huis),
 over de grens heen. Dit is een lokale testversie voor op je laptop; de logica is los van de

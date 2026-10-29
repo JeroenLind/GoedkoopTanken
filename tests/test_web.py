@@ -129,8 +129,15 @@ class WebTests(unittest.TestCase):
     def test_serves_page_with_security_headers(self):
         status, body, resp = self.call("GET", "/")
         self.assertEqual(status, 200)
-        self.assertIn("fuelfinder", body)
+        self.assertIn("<title>Goedkoop tanken</title>", body)
+        self.assertNotIn("fuelfinder", body.lower())
         self.assertIn("default-src 'self'", resp.getheader("Content-Security-Policy"))
+
+    def test_serves_app_icon(self):
+        status, body, resp = self.call("GET", "/icon.svg")
+        self.assertEqual(status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "image/svg+xml")
+        self.assertIn("<svg", body)
 
     def test_settings_roundtrip_and_key_not_exposed(self):
         status, data, _ = self.call("GET", "/api/settings")
@@ -264,7 +271,7 @@ class WebTests(unittest.TestCase):
         self.call("POST", "/api/search", self.SEARCH)
         status, body, resp = self.call("GET", "/api/export")
         self.assertEqual(status, 200)
-        self.assertIn("attachment; filename=\"fuelfinder-data-", resp.getheader("Content-Disposition"))
+        self.assertIn("attachment; filename=\"goedkoop-tanken-data-", resp.getheader("Content-Disposition"))
         self.assertEqual(body["counts"]["stations_seen"], 2)
         _, screen, _ = self.call("POST", "/api/search", self.SEARCH)
         self.assertEqual([r["nr"] for r in body["stations"]], [r["rank"] for r in screen["results"]])

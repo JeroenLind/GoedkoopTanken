@@ -81,6 +81,7 @@ De pijlen gaan van boven naar beneden: de kern kent de interfaces niet. De kaart
 | `fuelfinder/cli.py` | Commando's `find`, `stations`, `vehicle`, `check`, `cache`, `web` |
 | `fuelfinder/models.py` | `Station`, `Vehicle`, `Result`, brandstofnamen |
 | `fuelfinder/static/index.html` | De hele webinterface (HTML, CSS en JavaScript in één bestand) |
+| `fuelfinder/static/icon.svg` | Pictogram van de app (kop, tabblad); `goedkoop-tanken/icon.png` en `logo.png` zijn dezelfde tekening voor Home Assistant |
 | `fuelfinder/static/vendor/leaflet/` | Meegeleverde kaartbibliotheek (Leaflet 1.9.4) |
 | `goedkoop-tanken/` | Home Assistant-add-on: `config.yaml`, `Dockerfile`, startscripts, documentatie, vertaling |
 | `repository.yaml` | Maakt de repository herkenbaar als add-on-opslagplaats |
@@ -512,6 +513,13 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Reden:** ANWB levert drie landen, Tankerkönig er één; alleen per land aan of uit zetten past daarbij. Een nieuwe bron of een nieuw land vraagt zo geen aanpassing van de interface.
 - **Afgewezen:** één lijst aan/uit voor alle landen (te grof); het land uit de bron zelf halen (niet elke bron levert het); de oude instelling omzetten (Jeroen: mag vervallen, de standaard geldt).
 
+### D-26. Naam en huisstijl alleen aan de buitenkant
+
+- **Besluit door:** Jeroen (naam en pictogram), Claude (hoe het is doorgevoerd). **Eisen:** FR-35, FR-36.
+- **Keuze:** de naam "Goedkoop tanken" staat in alles wat de gebruiker ziet. Het pictogram is één SVG (`static/icon.svg`), door `web.py` onder een vaste naam aangeboden (`/icon.svg`, ook als `/favicon.ico`); voor Home Assistant staat dezelfde tekening als `icon.png` (128 px) en `logo.png` (512 px) in `goedkoop-tanken/`. De kleuren zitten als variabelen bovenaan `index.html` (`--brand` groen, `--ink` marineblauw, `--accent` oranje, ook voor donkere modus). De winnaar krijgt groen; oranje is alleen het accent op de kaartspeld. De indeling van het scherm is niet veranderd.
+- **Reden:** Jeroen wil overal "Goedkoop tanken" en koos dit pictogram. Voor wit op groen is een donkerder groen (#0F7A58) nodig dan de tegel (#1D9E75) om genoeg contrast te houden (NFR-8).
+- **Afgewezen / uitgesteld:** een webfont (Nunito) zoals in het ontwerp: dat vraagt een externe aanvraag en de Content-Security-Policy staat die niet toe (D-14), dus de interface gebruikt de systeemletter. De technische naam (map, commando) is niet hernoemd omdat dat het laptopcommando breekt (NFR-1); dat staat als O-7 open. Het uitgebreide tweekoloms-scherm uit de mockup (kaart naast de lijst) is nog niet gebouwd.
+
 ## 9. Traceerbaarheid: eisen naar ontwerp
 
 | Eis | Ontwerpkeuze | Modules en tests |
@@ -541,6 +549,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-28 Alleen de web-UI in v1 | Beperking van de scope | |
 | FR-30 t/m FR-34 Bronnen en landen | D-25 | `providers/__init__.py` (`PROVIDER_CLASSES`, `catalog`, `clean_countries`, `collect_areas`), `countries.py`, `config.py`, `static/index.html`; `test_countries.py` |
 | FR-29 België | D-3 (ANWB levert ook Belgische stations; geen codewijziging nodig) | `providers/anwb.py`; `test_all.py` (`test_anwb_returns_belgian_station_near_the_border`) |
+| FR-35, FR-36 Naam en huisstijl | D-26 | `static/index.html`, `static/icon.svg`, `web.py`, `goedkoop-tanken/icon.png`; `test_web.py`, `check_addon.py` |
 | NFR-1 Laptop | D-1, D-14 | `cli.py`, `web.py` |
 | NFR-2 tot NFR-4 Platform en images | D-21, D-22 | `goedkoop-tanken/`, `.github/workflows/` |
 | NFR-5 Release via tag | D-22 | `release.yaml`, `scripts/check_addon.py` |

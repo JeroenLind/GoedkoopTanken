@@ -3,29 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>fuelfinder</title>
+<title>Goedkoop tanken</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#1D9E75">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
   :root {
-    --ink: #17212b;          /* asfalt */
-    --ink-soft: #55626f;
-    --paper: #eef0ec;        /* koel grijs papier */
-    --panel: #e3e6e0;
-    --surface: #fafaf7;
-    --line: #c9cec6;
-    --sign: #f5c518;         /* wegbordgeel: alleen voor de winnaar */
-    --sign-tint: #fbefb8;
-    --gain: #17724a;
+    --ink: #14263d;          /* marineblauw */
+    --ink-soft: #3f5168;
+    --paper: #f4f7f5;        /* koel groenig wit */
+    --panel: #eaf0ec;
+    --surface: #ffffff;
+    --line: #c9d6cf;
+    --brand: #0f7a58;        /* groen uit het pictogram, donker genoeg voor witte tekst */
+    --sign: #0f7a58;         /* alleen voor de winnaar */
+    --sign-tint: #e6f5ef;
+    --accent: #f28c28;       /* oranje: alleen voor het label en de speld van de winnaar */
+    --gain: #0f7a58;
     --loss: #b4432d;
     --focus: #1d5fd1;
-    --display: Bahnschrift, "DIN Alternate", "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+    --display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
     --text: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --ink: #e8ece6; --ink-soft: #9aa6a0; --paper: #10161c; --panel: #172029;
-      --surface: #1b252f; --line: #2c3945; --sign: #f5c518; --sign-tint: #3a3410;
-      --gain: #5fcf9a; --loss: #f08a72; --focus: #7fb0ff;
+      --ink: #e8eef0; --ink-soft: #a3b2bd; --paper: #0e1a28; --panel: #14243a;
+      --surface: #182b44; --line: #2a4060; --brand: #1d9e75; --sign: #1d9e75; --sign-tint: #12372c;
+      --accent: #f28c28; --gain: #5fcf9a; --loss: #f08a72; --focus: #7fb0ff;
     }
   }
   * { box-sizing: border-box; }
@@ -40,24 +44,25 @@
   /* ---------- kop met menuknop ---------- */
   .top { display: flex; align-items: center; gap: 12px; padding: 14px 0 10px; }
   .menubtn { position: relative; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer;
-    border: 1px solid var(--ink); border-radius: 4px; background: transparent; padding: 0; }
+    border: 1px solid var(--ink); border-radius: 10px; background: transparent; padding: 0; }
   .menubtn:hover { background: var(--surface); }
   .menubtn svg { width: 22px; height: 22px; }
   .menubtn .dot { position: absolute; top: 5px; right: 5px; width: 9px; height: 9px; border-radius: 50%;
     background: var(--loss); }
-  .brand { font: 700 1.6rem/1 var(--display); letter-spacing: .01em; margin: 0; }
+  .logo { width: 36px; height: 36px; border-radius: 9px; flex: none; }
+  .brand { font: 800 1.6rem/1 var(--display); letter-spacing: -.01em; margin: 0; color: var(--ink); }
 
   /* ---------- altijd zichtbaar: locatie, liters, bereken ---------- */
   .bar { display: grid; grid-template-columns: minmax(0, 1fr) 120px 170px; gap: 12px 14px; align-items: end;
     padding: 14px 0 6px; border-top: 2px solid var(--ink); }
   .bar label > span { display: block; font-size: .85rem; color: var(--ink-soft); margin-bottom: 3px; }
-  .bar input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+  .bar input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
   .bar .locrow { display: flex; gap: 8px; }
   .bar .locrow input { flex: 1; min-width: 0; }
   .status { grid-column: 1 / -1; margin: 0; font-size: .85rem; color: var(--ink-soft); min-height: 1.3em; }
   .status.err { color: var(--loss); }
 
-  .modes { grid-column: 1 / -1; display: inline-flex; justify-self: start; border: 1px solid var(--ink); border-radius: 4px;
+  .modes { grid-column: 1 / -1; display: inline-flex; justify-self: start; border: 1px solid var(--ink); border-radius: 10px;
     overflow: hidden; }
   .modes button { border: 0; background: transparent; padding: 7px 14px; cursor: pointer; font-weight: 500; }
   .modes button + button { border-left: 1px solid var(--ink); }
@@ -71,7 +76,7 @@
   .bar .status + .status { margin-top: -6px; }
   #navnote { padding: 2px 12px 6px; max-width: 24ch; font-size: .78rem; color: var(--ink-soft); }
   /* kaart om een bestemming te kiezen */
-  #mapdlg { width: min(920px, 96vw); height: min(680px, 92vh); padding: 0; border: 1px solid var(--ink); border-radius: 6px;
+  #mapdlg { width: min(920px, 96vw); height: min(680px, 92vh); padding: 0; border: 1px solid var(--ink); border-radius: 12px;
     background: var(--paper); color: var(--ink); }
   #mapdlg[open] { display: flex; flex-direction: column; }
   #mapdlg::backdrop { background: rgba(10, 16, 22, .55); }
@@ -83,17 +88,17 @@
   #maplabel { font-size: .9rem; color: var(--ink-soft); min-width: 0; overflow-wrap: anywhere; }
   .maphint { margin: 0; padding: 6px 14px; font-size: .85rem; color: var(--ink-soft); }
   @media (max-width: 700px) { #mapdlg { width: 100vw; height: 100dvh; max-width: none; max-height: none; border-radius: 0; } }
-  .btn { border: 1px solid var(--ink); background: transparent; border-radius: 4px; padding: 8px 12px;
+  .btn { border: 1px solid var(--ink); background: transparent; border-radius: 10px; padding: 8px 12px;
     cursor: pointer; white-space: nowrap; }
   .btn:hover { background: var(--surface); }
-  #placepick { border: 1px solid var(--ink); background: transparent; border-radius: 4px; padding: 8px 6px; max-width: 9.5rem; }
+  #placepick { border: 1px solid var(--ink); background: transparent; border-radius: 10px; padding: 8px 6px; max-width: 9.5rem; }
   .srcrow { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
-  .card { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 10px 12px; margin: 0 0 10px; }
+  .card { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 10px 12px; margin: 0 0 10px; }
   .card .top { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
   .card .nm { font-weight: 600; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
   .chip { font-size: .78rem; background: var(--panel); border-radius: 99px; padding: 1px 9px; }
-  .badge { font-size: .78rem; border-radius: 4px; padding: 1px 7px; background: var(--panel); white-space: nowrap; }
+  .badge { font-size: .78rem; border-radius: 10px; padding: 1px 7px; background: var(--panel); white-space: nowrap; }
   .badge.ok { color: var(--gain); } .badge.err { color: var(--loss); }
   .card details summary { cursor: pointer; font-size: .85rem; color: var(--ink-soft); margin: 4px 0; }
   .card details p { font-size: .82rem; color: var(--ink-soft); margin: 4px 0 8px; }
@@ -117,11 +122,11 @@
   .sw input:checked + span::after { left: 21px; }
   .sw input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
   .hint.ok { color: var(--gain); }
-  .placerow { border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin: 0 0 10px; }
+  .placerow { border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin: 0 0 10px; }
   .placerow > .row { margin-top: 2px; }
-  .btn.primary { background: var(--ink); color: var(--paper); font: 600 1.1rem/1 var(--display);
+  .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; font: 600 1.1rem/1 var(--display);
     padding: 13px 16px; width: 100%; letter-spacing: .02em; }
-  .btn.primary:hover { background: var(--ink); filter: brightness(1.15); }
+  .btn.primary:hover { background: var(--brand); filter: brightness(1.12); }
   .btn[disabled] { opacity: .6; cursor: progress; }
 
   /* ---------- uitschuifpaneel met instellingen ---------- */
@@ -143,7 +148,7 @@
   .field { display: block; margin: 0 0 12px; }
   .field > span { display: block; font-size: .85rem; color: var(--ink-soft); margin-bottom: 3px; }
   .field input[type=text], .field input[type=password], .field select {
-    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
   .row { display: flex; gap: 8px; align-items: stretch; }
   .row > * { min-width: 0; }
   .row .grow { flex: 1; }
@@ -151,7 +156,7 @@
   .hint { font-size: .82rem; color: var(--ink-soft); margin: -6px 0 12px; min-height: 1.2em; }
   .hint.err { color: var(--loss); }
   .check { display: flex; gap: 8px; align-items: center; margin: 0 0 8px; }
-  .check input { width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
+  .check input { width: 18px; height: 18px; accent-color: var(--brand); flex: none; }
   .drawer-foot { padding: 12px 20px 16px; border-top: 1px solid var(--line); display: flex; gap: 10px;
     align-items: center; justify-content: space-between; flex-wrap: wrap; }
   .save-state { font-size: .82rem; color: var(--ink-soft); }
@@ -185,12 +190,12 @@
   .loss { color: var(--loss); }
   .navbtn { padding: 4px 10px; font-size: .88rem; }
   a.btn { display: inline-block; text-decoration: none; color: inherit; }
-  .resmap { height: 400px; margin: 0 0 6px; border: 1px solid var(--line); border-radius: 4px; position: relative;
+  .resmap { height: 400px; margin: 0 0 6px; border: 1px solid var(--line); border-radius: 10px; position: relative;
     z-index: 0; isolation: isolate; background: var(--panel); }
   .mapnote { margin: 0 0 18px; font-size: .88rem; color: var(--ink-soft); min-height: 1.3em; }
   .pin { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #fafaf7;
     color: #17212b; border: 2px solid #17212b; font: 700 .85rem/1 var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.35); }
-  .pin.best { background: #f5c518; }
+  .pin.best { background: var(--accent); }
   .pin.base { border-style: dashed; }
   .pin.sel { box-shadow: 0 0 0 4px rgba(29,95,209,.55), 0 1px 4px rgba(0,0,0,.35); transform: scale(1.12); }
   tbody tr[tabindex] { cursor: pointer; }
@@ -224,7 +229,7 @@
   }
   tr.sel td { background-image: linear-gradient(rgba(29,95,209,.12), rgba(29,95,209,.12)); }
   .sub.src { margin-top: 1px; }
-  .detail { margin: 0 0 18px; border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 12px 16px 10px; }
+  .detail { margin: 0 0 18px; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 12px 16px 10px; }
   .detail h3 { font: 600 1.1rem/1.3 var(--display); margin: 0 0 8px; }
   .detail h3 .tag { font-family: var(--text); }
   .detail table { min-width: 0; width: 100%; }
@@ -239,8 +244,8 @@
   .maptip .sub { font-size: .85em; opacity: .75; }
   @media (max-width: 700px) { .resmap { height: 300px; } }
   #navmenu { position: fixed; inset: auto; margin: 0; padding: 6px; min-width: 170px; border: 1px solid var(--ink);
-    border-radius: 6px; background: var(--surface); color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
-  #navmenu a { display: block; padding: 9px 12px; border-radius: 4px; color: inherit; text-decoration: none; }
+    border-radius: 12px; background: var(--surface); color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  #navmenu a { display: block; padding: 9px 12px; border-radius: 10px; color: inherit; text-decoration: none; }
   #navmenu a:hover, #navmenu a:focus-visible { background: var(--sign-tint); }
   #navmenu .navtitle { padding: 4px 12px 6px; font-size: .8rem; color: var(--ink-soft); }
   .gap td { text-align: center; color: var(--ink-soft); padding: 4px; border-bottom-style: dashed; }
@@ -282,7 +287,8 @@
         <path d="M4 6h16M4 12h16M4 18h16"/></svg>
       <span class="dot" id="menudot" hidden></span>
     </button>
-    <h1 class="brand">fuelfinder</h1>
+    <img class="logo" src="icon.svg" alt="" width="36" height="36">
+    <h1 class="brand">Goedkoop tanken</h1>
   </header>
 
   <form class="bar" id="bar" autocomplete="off">
@@ -478,7 +484,7 @@ async function api(path, body) {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
   let res;
   try { res = await fetch(path, opts); }
-  catch { throw new Error("De fuelfinder-server reageert niet. Draait het terminalvenster nog?"); }
+  catch { throw new Error("De Goedkoop tanken-server reageert niet. Draait het terminalvenster nog?"); }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `Fout ${res.status}`);
   return data;

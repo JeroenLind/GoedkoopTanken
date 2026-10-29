@@ -268,7 +268,7 @@ def _s(value: str) -> str:  # TOML-tekenreeks (JSON-escaping is een geldige subs
 
 
 def to_toml(cfg: Config) -> str:
-    lines = ["# Opgeslagen door fuelfinder. Handmatig aanpassen mag; opmerkingen blijven niet",
+    lines = ["# Opgeslagen door Goedkoop tanken. Handmatig aanpassen mag; opmerkingen blijven niet",
              "# behouden zodra je opnieuw via de webinterface opslaat.", "", "[home]"]
     if cfg.home_lat is not None and cfg.home_lon is not None:
         lines += [f"lat = {cfg.home_lat!r}", f"lon = {cfg.home_lon!r}"]

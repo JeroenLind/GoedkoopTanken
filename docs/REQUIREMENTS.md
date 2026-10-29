@@ -91,6 +91,13 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-27 | De app is bereikbaar via de zijbalk van Home Assistant (Ingress), ook in de Home Assistant-app op de telefoon. | Jeroen | Klaar |
 | FR-28 | In versie 1 is de koppeling met Home Assistant beperkt tot de web-interface in de zijbalk. Sensoren, meldingen en services zijn bewust uitgesteld. | Jeroen | Besluit |
 
+### 3.7 Naam en uiterlijk
+
+| Nr. | Eis | Herkomst | Status |
+| --- | --- | --- | --- |
+| FR-35 | De app heet overal "Goedkoop tanken" waar de gebruiker haar ziet (tabbladtitel, kop, meldingen, export, documentatie), niet "fuelfinder". De technische naam van het pakket en het commando (`python -m fuelfinder web`) blijft voorlopig gelijk, zie O-7. | Jeroen | Klaar |
+| FR-36 | Het pictogram is een groene afgeronde tegel met een witte brandstofdruppel en een pijl omlaag. De huisstijl is groen (#1D9E75, voor tekst en knoppen donkerder: #0F7A58), marineblauw (#1E3A5F) en oranje (#F28C28, alleen als accent). Het pictogram staat in de interface, als tabbladpictogram en als pictogram van de add-on. | Jeroen | Klaar |
+
 ## 4. Niet-functionele eisen
 
 ### 4.1 Platform, distributie en licentie
@@ -145,6 +152,8 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | Images | Prebuilt op GHCR, aarch64 en amd64 | Jeroen |
 | Releases | Alleen via versie-tags; de eerste push levert geen release op | Jeroen |
 | Laptop | `python -m fuelfinder web` blijft werken | Jeroen |
+| Naam in de app | Goedkoop tanken, overal waar de gebruiker het ziet (FR-35) | Jeroen |
+| Pictogram | Groene tegel met witte druppel en pijl omlaag (FR-36) | Jeroen |
 | Taal | Nederlands | Jeroen |
 | Licentie | GPL v3 | Jeroen |
 
@@ -157,10 +166,11 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | Nr. | Punt | Eigenaar |
 | --- | --- | --- |
 | O-1 | Maximale reactietijd (NFR-10): welke grens is acceptabel? | Jeroen |
-| O-2 | Pictogram en logo van de add-on. | Jeroen |
+| O-2 | ~~Pictogram en logo van de add-on.~~ Besloten: zie FR-36. | Jeroen |
 | O-3 | Contactadres voor de User-Agent naar OpenStreetMap-diensten (optionele add-on-optie `contact`). | Jeroen |
 | O-4 | Minimale Home Assistant-versie. | Te bepalen bij testen |
 | O-5 | Toegankelijkheid (NFR-8) nog niet getoetst met toetsenbord en schermlezer. | Te plannen |
+| O-7 | Ook de technische naam (map `fuelfinder/`, pakketnaam, commando `python -m fuelfinder web`, `FUELFINDER_CONTACT`, User-Agent) hernoemen naar Goedkoop tanken? Dat breekt het laptopcommando uit NFR-1. | Jeroen |
 | O-6 | **Risico: ANWB.** De ANWB-bron levert de Nederlandse en Belgische prijzen (FR-2, FR-29), maar is geen gedocumenteerde of officiële API en kan zonder waarschuwing wijzigen of verdwijnen. Bij uitval valt de app terug op oudere prijzen met een melding (FR-7, NFR-9). Een mogelijke vervanger voor NL en BE is de DirectLease TankService (genoemd door pyfuelprices); die is nog niet onderzocht. | Jeroen |
 
 ## 8. Herleidbaarheid

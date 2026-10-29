@@ -374,7 +374,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
 
     return {
         "generated_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
-        "program": "fuelfinder",
+        "program": "Goedkoop tanken",
         "query": {
             "mode": out.mode, "start": {"lat": out.home[0], "lon": out.home[1], "label": out.home_label},
             "destination": ({"lat": out.dest[0], "lon": out.dest[1], "label": out.dest_label} if out.dest else None),

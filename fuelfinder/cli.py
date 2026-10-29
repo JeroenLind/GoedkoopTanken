@@ -228,7 +228,7 @@ def cmd_check(args, cfg) -> int:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(prog="fuelfinder", description=__doc__)
+    parser = argparse.ArgumentParser(prog="goedkoop-tanken", description=__doc__)
     parser.add_argument("--config", help="pad naar config.toml (standaard: ./config.toml)")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
