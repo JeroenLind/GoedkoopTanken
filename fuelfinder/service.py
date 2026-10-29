@@ -12,11 +12,12 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 
 from . import calc, geo, http, vehicle
+from .countries import COUNTRIES, country_of
 from .cache import FetchInfo, StationCache, age_text
 from . import config
 from .config import Config
 from .models import FUEL_LABELS, Result, Vehicle
-from .providers import SOURCE_LABELS, build_providers, collect_areas, collect_cached
+from .providers import PROVIDER_CLASSES, SOURCE_LABELS, build_providers, collect_areas, collect_cached, enabled_map
 from .routing import Router
 
 
@@ -191,9 +192,13 @@ def search(cfg: Config, params: SearchParams | None = None) -> SearchOutput:
         warnings.append("De maximale afstand geldt alleen bij zoeken langs een route en is genegeerd.")
 
     try:
+        enabled = enabled_map(cfg, p.providers)
         providers = build_providers(cfg, p.providers)
     except ValueError as e:
         raise SearchError(str(e)) from e
+    if not providers:
+        raise SearchError("Er staat geen enkele bron aan. Zet bij de instellingen (Bronnen) in minstens één "
+                          "land een bron aan.")
     cache = StationCache(cfg.cache_path()) if cfg.cache_enabled and not p.no_cache else None
     max_age_s = cfg.cache_max_age_hours * 3600
     router = Router(cfg.osrm_url, enabled=cfg.use_routing and not p.no_routing)
@@ -202,12 +207,14 @@ def search(cfg: Config, params: SearchParams | None = None) -> SearchOutput:
         line, areas = _plan_route(out, router, p.corridor_km, warnings)
         out.route_line, out.searched_areas = line, areas
         stations, out.provider_messages, out.sources = collect_areas(
-            providers, areas, cache=cache, max_age_s=max_age_s, refresh=p.refresh, dropped=out.dropped)
+            providers, areas, cache=cache, max_age_s=max_age_s, refresh=p.refresh, dropped=out.dropped,
+            enabled=enabled)
     else:
         out.searched_areas = [(home_lat, home_lon, radius)]
         stations, out.provider_messages, out.sources = collect_cached(
             providers, home_lat, home_lon, radius, cache=cache, max_age_s=max_age_s, refresh=p.refresh,
-            dropped=out.dropped)
+            dropped=out.dropped, enabled=enabled)
+    warnings.extend(_countries_without_source(enabled, out.searched_areas))
     out.stations = stations
     for name, info in out.sources.items():
         if info.origin == "stale":
@@ -244,6 +251,22 @@ def search(cfg: Config, params: SearchParams | None = None) -> SearchOutput:
         if pr.attribution and not out.provider_messages.get(pr.name, "mislukt").startswith("mislukt")
     ]
     return out
+
+
+def _countries_without_source(enabled: dict[str, list[str]], areas) -> list[str]:
+    """Waarschuwingen voor landen die in het zoekgebied liggen maar waar geen bron voor aan staat."""
+    empty = [c for c in COUNTRIES if not enabled.get(c)]
+    if not empty:
+        return []
+    seen: set[str] = set()
+    for lat, lon, radius in areas:
+        # het middelpunt en acht punten op de rand van de cirkel
+        points = [(lat, lon)] + [
+            (lat + radius * math.cos(a) / 110.57, lon + radius * math.sin(a) / (111.32 * math.cos(math.radians(lat))))
+            for a in (i * math.pi / 4 for i in range(8))]
+        seen.update(c for c in (country_of(la, lo) for la, lo in points) if c)
+    return [f"Voor {COUNTRIES[c]} staat geen bron aan: stations daar worden overgeslagen."
+            for c in empty if c in seen]
 
 
 def _plan_route(out: SearchOutput, router: Router, corridor_override, warnings: list[str]):
@@ -378,24 +401,19 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
     }
 
 
-# Een bekend punt per bron voor de testknop: klein gebied, dus een snelle en lichte aanvraag.
-TEST_POINTS = {"tankerkoenig": (51.7886, 6.1386, "Kleve"), "anwb": (51.1942, 5.9876, "Roermond")}
-
-
 def test_source(cfg: Config, name: str, api_key: str | None = None) -> dict:
     """Test één prijsbron: bereikbaar, sleutel geldig, levert data. Nooit de sleutel in het antwoord."""
     import time
-    from .providers import SOURCE_LABELS, build_providers
     from .providers.base import ProviderError
-    if name not in TEST_POINTS:
+    if name not in PROVIDER_CLASSES:
         raise SearchError(f"Onbekende bron '{name}'")
     key = (api_key or "").strip() or cfg.tankerkoenig_key
     cfg = replace(cfg, tankerkoenig_key=key)
     provider = build_providers(cfg, [name])[0]
-    lat, lon, where = TEST_POINTS[name]
+    lat, lon, where = provider.test_point or (52.0, 5.0, "Nederland")
     out = {"source": name, "label": SOURCE_LABELS.get(name, name), "ok": False, "ms": None,
            "stations": 0, "priced": 0, "detail": "", "advice": ""}
-    if name == "tankerkoenig" and not key:
+    if provider.needs_key and not key:
         out["detail"] = "Geen API-key ingevuld."
         out["advice"] = "Vraag gratis een key aan op creativecommons.tankerkoenig.de en vul hem hierboven in."
         return out

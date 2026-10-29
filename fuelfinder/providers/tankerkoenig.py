@@ -19,9 +19,18 @@ MAX_RADIUS_KM = 25.0
 
 class TankerkoenigProvider(Provider):
     name = "tankerkoenig"
+    label = "Tankerkönig"
     countries = ("DE",)
+    official = True
+    needs_key = True
+    note = "Officiële API met gratis key; de data komt van de Markttransparenzstelle (MTS-K), maximaal 25 km straal."
+    test_point = (51.7886, 6.1386, "Kleve")
     attribution = "Duitse prijzen: Tankerkönig.de / MTS-K, licentie CC BY 4.0"
     max_radius_km = MAX_RADIUS_KM
+
+    @classmethod
+    def from_config(cls, cfg):
+        return cls(cfg.tankerkoenig_key, cfg.allow_e10)
 
     def __init__(self, api_key: str | None, allow_e10: bool = True):
         self.api_key = api_key

@@ -26,9 +26,13 @@ radius_km = 25
 max_results = 10
 max_extra_min = 30                # max. extra rijtijd t.o.v. het dichtstbijzijnde station; 0 = geen limiet
 
-[providers]
-# Volgorde telt: bij dubbele stations (binnen 75 m) wint de bron die eerst staat.
-enabled = ["tankerkoenig", "anwb"]
+[providers.countries]
+# Per land de bronnen die aan staan. De volgorde is de prioriteit: levert meer dan één bron hetzelfde
+# station (binnen 75 m), dan wint de eerste. Een lege lijst zet het land uit. Normaal stel je dit in
+# via het menu van de app.
+NL = ["anwb"]
+DE = ["tankerkoenig", "anwb"]
+BE = ["anwb"]
 
 [providers.tankerkoenig]
 api_key = ""                      # of zet omgevingsvariabele TANKERKOENIG_API_KEY

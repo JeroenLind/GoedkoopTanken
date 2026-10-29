@@ -505,6 +505,13 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Afgewezen:** de grens op de omweg zetten (dat is de tijdlimiet, FR-4, en zegt niets over het bereiken van het station); de grens pas na de referentie toepassen (referentie kan onhaalbaar zijn).
 - **Zichtbaar:** de uitkomst en de export noemen hoeveel stations te ver weg lagen, en de export geeft per station de status "te ver weg" en `km_to_station`. Zonder haalbaar station staat er een melding.
 
+### D-25. Bronnen per land met prioriteit, uit een catalogus
+
+- **Besluit door:** Jeroen. **Eisen:** FR-30, FR-31, FR-32, FR-33, FR-34.
+- **Keuze:** elke bron beschrijft zichzelf (naam, label, landen, officieel, key nodig, toelichting, testpunt) in zijn `Provider`-klasse; `PROVIDER_CLASSES` is het enige register. `catalog()` levert bronnen en landen aan de interface, die daar alles uit tekent. De instelling is `{land: [bronnen op prioriteit]}` (`[providers.countries]` in config.toml). Het land van een station volgt uit meegeleverde landgrenzen (`countries.py`, `data/landgrenzen.json`). Een station telt alleen mee als zijn bron voor dat land aan staat; bij dubbelen (binnen 75 m) wint de bron met de hoogste prioriteit in dat land. Een land zonder bron geeft een waarschuwing als het in het zoekgebied ligt.
+- **Reden:** ANWB levert drie landen, Tankerkönig er één; alleen per land aan of uit zetten past daarbij. Een nieuwe bron of een nieuw land vraagt zo geen aanpassing van de interface.
+- **Afgewezen:** één lijst aan/uit voor alle landen (te grof); het land uit de bron zelf halen (niet elke bron levert het); de oude instelling omzetten (Jeroen: mag vervallen, de standaard geldt).
+
 ## 9. Traceerbaarheid: eisen naar ontwerp
 
 | Eis | Ontwerpkeuze | Modules en tests |
@@ -532,6 +539,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-26 Locatie uit tracker | D-17 | `ha.py`, `web.py`; `test_ha.py` |
 | FR-27 Zijbalk via Ingress | D-14, D-15, D-21 | `web.py` (Ingress-modus), `goedkoop-tanken/`; `test_ha.py`, `test_addon.py` |
 | FR-28 Alleen de web-UI in v1 | Beperking van de scope | |
+| FR-30 t/m FR-34 Bronnen en landen | D-25 | `providers/__init__.py` (`PROVIDER_CLASSES`, `catalog`, `clean_countries`, `collect_areas`), `countries.py`, `config.py`, `static/index.html`; `test_countries.py` |
 | FR-29 België | D-3 (ANWB levert ook Belgische stations; geen codewijziging nodig) | `providers/anwb.py`; `test_all.py` (`test_anwb_returns_belgian_station_near_the_border`) |
 | NFR-1 Laptop | D-1, D-14 | `cli.py`, `web.py` |
 | NFR-2 tot NFR-4 Platform en images | D-21, D-22 | `goedkoop-tanken/`, `.github/workflows/` |

@@ -28,7 +28,7 @@ class ConfigDictTests(unittest.TestCase):
             "home": {"lat": "51,2", "lon": 6.1, "address": 'Straat "1"'},
             "vehicle": {"plate": "ab-12", "fuel": "diesel", "consumption_l_per_100km": "5,5"},
             "search": {"max_extra_min": "45"},
-            "providers": {"enabled": ["anwb"], "tankerkoenig_api_key": "geheim"},
+            "providers": {"countries": {"NL": ["anwb"], "DE": []}, "tankerkoenig_api_key": "geheim"},
         })
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "c.toml"
@@ -45,7 +45,7 @@ class ConfigDictTests(unittest.TestCase):
 
     def test_blank_key_keeps_existing_and_key_never_in_dict(self):
         base = config.Config(tankerkoenig_key="oud", tankerkoenig_key_file="oud")
-        cfg = config.from_dict({"providers": {"enabled": ["anwb"], "tankerkoenig_api_key": ""}}, base)
+        cfg = config.from_dict({"providers": {"tankerkoenig_api_key": ""}}, base)
         self.assertEqual(cfg.tankerkoenig_key_file, "oud")
         self.assertNotIn("oud", json.dumps(config.to_dict(cfg)))
 
@@ -54,8 +54,10 @@ class ConfigDictTests(unittest.TestCase):
                ({"search": {"radius_km": 5000}}, "Zoekstraal"),
                ({"home": {"lat": "51"}}, "Thuislocatie"),
                ({"vehicle": {"fuel": "stroom"}}, "Brandstof"),
-               ({"providers": {"enabled": []}}, "Bronnen"),
-               ({"providers": {"enabled": ["nepbron"]}}, "onbekend")]
+               ({"providers": {"countries": {"NL": ["nepbron"]}}}, "onbekende bron"),
+               ({"providers": {"countries": {"NL": ["tankerkoenig"]}}}, "dekt dit land niet"),
+               ({"providers": {"countries": {"FR": ["anwb"]}}}, "onbekend land"),
+               ({"providers": {"countries": {"DE": ["anwb", "anwb"]}}}, "twee keer")]
         for data, fragment in bad:
             with self.assertRaises(ValueError, msg=str(data)) as cm:
                 config.from_dict(data)
@@ -122,7 +124,7 @@ class WebTests(unittest.TestCase):
     SEARCH = {"settings": {
         "home": {"lat": "51.9", "lon": "6.6", "address": "Teststraat 1"},
         "vehicle": {"plate": "AB-123-C"}, "search": {"max_extra_min": "0"},
-        "providers": {"enabled": ["anwb"]}, "routing": {"enabled": False}}}
+        "providers": {"countries": {"NL": ["anwb"], "DE": ["anwb"], "BE": ["anwb"]}}, "routing": {"enabled": False}}}
 
     def test_serves_page_with_security_headers(self):
         status, body, resp = self.call("GET", "/")

@@ -88,6 +88,34 @@
   .btn:hover { background: var(--surface); }
   #placepick { border: 1px solid var(--ink); background: transparent; border-radius: 4px; padding: 8px 6px; max-width: 9.5rem; }
   .srcrow { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+  .card { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 10px 12px; margin: 0 0 10px; }
+  .card .top { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
+  .card .nm { font-weight: 600; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .chip { font-size: .78rem; background: var(--panel); border-radius: 99px; padding: 1px 9px; }
+  .badge { font-size: .78rem; border-radius: 4px; padding: 1px 7px; background: var(--panel); white-space: nowrap; }
+  .badge.ok { color: var(--gain); } .badge.err { color: var(--loss); }
+  .card details summary { cursor: pointer; font-size: .85rem; color: var(--ink-soft); margin: 4px 0; }
+  .card details p { font-size: .82rem; color: var(--ink-soft); margin: 4px 0 8px; }
+  .card .srcopts { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 10px; }
+  .country { padding: 0; overflow: hidden; }
+  .country .head { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
+    background: var(--panel); font-weight: 600; }
+  .country .head .badge { background: var(--surface); font-weight: 400; }
+  .country .row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); }
+  .country .row.off .nm { opacity: .55; }
+  .country .row .nm { flex: 1; min-width: 0; }
+  .country .row small { display: block; color: var(--ink-soft); font-size: .78rem; }
+  .country .warn { background: var(--sign-tint); font-size: .85rem; padding: 8px 12px; border-top: 1px solid var(--line); }
+  .btn.small { padding: 4px 9px; }
+  .sw { position: relative; width: 44px; height: 26px; flex: none; }
+  .sw input { position: absolute; inset: 0; opacity: 0; margin: 0; width: 100%; height: 100%; cursor: pointer; }
+  .sw span { position: absolute; inset: 0; background: var(--line); border-radius: 99px; transition: background .15s; }
+  .sw span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; transition: left .15s; }
+  .sw input:checked + span { background: var(--gain); }
+  .sw input:checked + span::after { left: 21px; }
+  .sw input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
   .hint.ok { color: var(--gain); }
   .placerow { border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin: 0 0 10px; }
   .placerow > .row { margin-top: 2px; }
@@ -372,17 +400,21 @@
 
     <section class="group">
       <h3>Bronnen</h3>
-      <div class="srcrow"><label class="check"><input type="checkbox" id="p-tankerkoenig"> Tankerkönig (Duitsland)</label>
-        <button type="button" class="btn" data-test="tankerkoenig">Test</button></div>
-      <p class="hint" id="t-tankerkoenig" role="status"></p>
-      <div class="srcrow"><label class="check"><input type="checkbox" id="p-anwb"> ANWB Onderweg (Nederland, België, Duitsland)</label>
-        <button type="button" class="btn" data-test="anwb">Test</button></div>
-      <p class="hint" id="t-anwb" role="status"></p>
-      <p class="hint">ANWB Onderweg is geen officiële, gedocumenteerde bron. Die kan zonder bericht veranderen of wegvallen, en is niet door de ANWB goedgekeurd voor dit gebruik. Gebruik is op eigen risico; zet de bron uit als je dat liever niet wilt.</p>
-      <label class="field"><span>Tankerkönig API-key</span>
-        <input type="password" id="tkkey" autocomplete="new-password"></label>
-      <p class="hint" id="key-hint"></p>
-      <label class="check"><input type="checkbox" id="e10"> E10 meenemen bij Duitse prijzen</label>
+      <p class="hint">Welke prijsbronnen er zijn, en of ze werken. Per land zet je ze hieronder aan of uit.</p>
+      <div id="src-list"></div>
+
+      <h3>Landen</h3>
+      <p class="hint">Kies per land welke bronnen gebruikt worden. Staan er meer bronnen aan, dan bepaalt de volgorde
+        de prioriteit: levert meer dan één bron hetzelfde station (binnen 75 m), dan wint de bovenste.</p>
+      <div id="country-list"></div>
+
+      <!-- Bronspecifieke opties: JS zet dit blok in de kaart van de bron met dezelfde naam -->
+      <div id="srcopts-tankerkoenig" class="srcopts" hidden>
+        <label class="field"><span>Tankerkönig API-key</span>
+          <input type="password" id="tkkey" autocomplete="new-password"></label>
+        <p class="hint" id="key-hint"></p>
+        <label class="check"><input type="checkbox" id="e10"> E10 meenemen bij Duitse prijzen</label>
+      </div>
     </section>
 
     <section class="group">
@@ -516,8 +548,9 @@ function fillForm(s) {
   $("radius").value = s.search.radius_km;
   $("maxextra").value = s.search.max_extra_min;
   $("maxresults").value = s.search.max_results;
-  $("p-tankerkoenig").checked = s.providers.enabled.includes("tankerkoenig");
-  $("p-anwb").checked = s.providers.enabled.includes("anwb");
+  srcCatalog = s.providers.catalog;
+  srcState = JSON.parse(JSON.stringify(s.providers.countries));
+  keySource = s.providers.tankerkoenig_key_source;
   $("e10").checked = s.providers.allow_e10;
   $("routing").checked = s.routing.enabled;
   $("osrm").value = s.routing.osrm_url;
@@ -525,6 +558,7 @@ function fillForm(s) {
   $("cache-on").checked = s.cache.enabled;
   $("cache-hours").value = s.cache.max_age_hours;
   $("tkkey").value = "";
+  renderSources();
   const src = s.providers.tankerkoenig_key_source;
   $("key-hint").textContent = src === "config" ? "Een key staat opgeslagen. Laat leeg om die te houden."
     : src === "env" ? "De omgevingsvariabele TANKERKOENIG_API_KEY is actief en heeft voorrang."
@@ -533,7 +567,6 @@ function fillForm(s) {
 }
 
 function collect() {                           // alle instellingen zoals ze nu in het formulier staan
-  const enabled = ["tankerkoenig", "anwb"].filter((p) => $("p-" + p).checked);
   return {
     home: { lat: $("lat").value, lon: $("lon").value, address: $("address").value },
     places: collectPlaces(),
@@ -541,7 +574,7 @@ function collect() {                           // alle instellingen zoals ze nu 
       consumption_l_per_100km: $("consumption").value, real_world_factor: $("factor").value },
     search: { fill_liters: $("fill").value, radius_km: $("radius").value,
       max_extra_min: $("maxextra").value || "0", max_results: $("maxresults").value },
-    providers: { enabled, allow_e10: $("e10").checked, tankerkoenig_api_key: $("tkkey").value },
+    providers: { countries: srcState, allow_e10: $("e10").checked, tankerkoenig_api_key: $("tkkey").value },
     routing: { enabled: $("routing").checked, osrm_url: $("osrm").value },
     cache: { enabled: $("cache-on").checked, max_age_hours: $("cache-hours").value },
     ...($("ha-group").hidden ? {} : { ha: { tracker: $("ha-tracker").value } }),
@@ -563,19 +596,109 @@ $("geocode").addEventListener("click", async () => {
   } catch (e) { hint("home-hint", e.message, true); }
 });
 
-/* ---- bronnen testen ---- */
-for (const btn of document.querySelectorAll("[data-test]")) {
-  btn.addEventListener("click", async () => {
-    const name = btn.dataset.test, out = $("t-" + name);
-    btn.disabled = true; out.className = "hint"; out.textContent = "Testen… (maximaal 10 seconden)";
-    try {
-      const r = await api("api/test-source", { source: name, providers: { tankerkoenig_api_key: $("tkkey").value } });
-      out.className = "hint " + (r.ok ? "ok" : "err");
-      out.textContent = (r.ok ? "In orde. " : "Mislukt. ") + r.detail + (r.advice ? " " + r.advice : "");
-    } catch (e) { out.className = "hint err"; out.textContent = e.message; }
-    finally { btn.disabled = false; }
-  });
+/* ---- bronnen en landen ---- */
+let srcCatalog = { sources: [], countries: [] };   // wat er bestaat (van de server)
+let srcState = {};                                  // per land de bronnen die aan staan, bovenaan = hoogste prioriteit
+let keySource = "none";
+let focusAfter = null;                              // knop die na het opnieuw tekenen de focus terugkrijgt
+
+function sourceBadge(src) {
+  const b = h("span", { class: "badge", "data-badge": src.name });
+  fillBadge(b, src);
+  return b;
 }
+function fillBadge(b, src) {
+  if (!src.needs_key) { b.textContent = "Geen key nodig"; return; }
+  const has = keySource !== "none" || $("tkkey").value.trim() !== "";
+  b.className = "badge " + (has ? "ok" : "err");
+  b.textContent = has ? "Key ingesteld" : "Key ontbreekt";
+}
+
+async function testSource(name, btn, out) {
+  btn.disabled = true; out.className = "hint"; out.textContent = "Testen… (maximaal 10 seconden)";
+  try {
+    const r = await api("api/test-source", { source: name, providers: { tankerkoenig_api_key: $("tkkey").value } });
+    out.className = "hint " + (r.ok ? "ok" : "err");
+    out.textContent = (r.ok ? "In orde. " : "Mislukt. ") + r.detail + (r.advice ? " " + r.advice : "");
+  } catch (e) { out.className = "hint err"; out.textContent = e.message; }
+  finally { btn.disabled = false; }
+}
+
+function renderSources() {
+  const list = $("src-list"), keep = $("srcopts-tankerkoenig");
+  document.body.append(keep);                       // even buiten de lijst, zodat die opnieuw getekend kan worden
+  keep.hidden = true;
+  const names = Object.fromEntries(srcCatalog.countries.map((c) => [c.code, c.name]));
+  list.replaceChildren(...srcCatalog.sources.map((src) => {
+    const out = h("p", { class: "hint", role: "status" });
+    const test = h("button", { type: "button", class: "btn small" }, "Test");
+    test.addEventListener("click", () => testSource(src.name, test, out));
+    const card = h("div", { class: "card" },
+      h("div", { class: "top" }, h("div", { class: "nm" }, src.label), sourceBadge(src)),
+      h("div", { class: "chips" }, src.countries.map((c) => h("span", { class: "chip" }, names[c] || c))),
+      h("div", { class: "srcrow" },
+        h("span", { class: "hint", style: "margin:0;min-height:0" }, src.official ? "Officiële bron" : "Niet officieel"), test),
+      out,
+      src.note ? h("details", null, h("summary", null, src.official ? "Meer over deze bron" : "Waarom niet officieel?"),
+        h("p", null, src.note)) : null);
+    const opts = $("srcopts-" + src.name);          // bronspecifieke velden (bijv. de Tankerkönig-key)
+    if (opts) { opts.hidden = false; card.append(opts); }
+    return card;
+  }));
+  renderCountries();
+}
+
+function renderCountries() {
+  const label = Object.fromEntries(srcCatalog.sources.map((x) => [x.name, x.label]));
+  $("country-list").replaceChildren(...srcCatalog.countries.map((c) => {
+    const on = srcState[c.code] || [];
+    const order = [...on, ...c.sources.filter((n) => !on.includes(n))];       // aan (op prioriteit), dan uit
+    const set = (list) => { srcState[c.code] = list; setDirty(true); renderCountries(); };
+    const rows = order.map((name) => {
+      const idx = on.indexOf(name), isOn = idx >= 0;
+      const box = h("input", { type: "checkbox", "data-f": `${c.code}:${name}:on`,
+        "aria-label": `${label[name]} voor ${c.name}`, checked: isOn });
+      box.addEventListener("change", () => {
+        focusAfter = `${c.code}:${name}:on`;
+        set(box.checked ? [...on, name] : on.filter((n) => n !== name));
+      });
+      const move = (dir, text, what) => {
+        const b = h("button", { type: "button", class: "btn small", "data-f": `${c.code}:${name}:${dir}`,
+          "aria-label": `${label[name]} ${what} in prioriteit voor ${c.name}` }, text);
+        b.addEventListener("click", () => {
+          const to = idx + dir, next = [...on];
+          [next[idx], next[to]] = [next[to], next[idx]];
+          focusAfter = `${c.code}:${name}:${dir}`;
+          set(next);
+        });
+        return b;
+      };
+      const up = isOn && idx > 0 ? move(-1, "▲", "hoger") : null;
+      const down = isOn && idx < on.length - 1 ? move(1, "▼", "lager") : null;
+      return h("div", { class: "row" + (isOn ? "" : " off") },
+        h("div", { class: "nm" }, label[name],
+          h("small", null, !isOn ? "Uit" : on.length > 1 ? `Prioriteit ${idx + 1}${idx === 0 ? " (wint bij dubbele stations)" : ""}` : "Aan")),
+        up, down,
+        h("label", { class: "sw" }, box, h("span")));
+    });
+    return h("div", { class: "card country" },
+      h("div", { class: "head" }, h("span", null, c.name),
+        h("span", { class: "badge" }, on.length ? `${on.length} van ${c.sources.length} aan` : "uit")),
+      rows,
+      on.length ? null : h("div", { class: "warn", role: "status" }, "Geen bron aan: stations in dit land worden overgeslagen."));
+  }));
+  if (focusAfter) {
+    const el = document.querySelector(`[data-f="${focusAfter}"]`) ||
+      document.querySelector(`[data-f="${focusAfter.replace(/:-?1$/, ":on")}"]`);   // knop is weg (bovenaan/onderaan)
+    el?.focus(); focusAfter = null;
+  }
+}
+$("tkkey").addEventListener("input", () => {     // alleen het label bijwerken; het veld zelf blijft staan
+  for (const src of srcCatalog.sources) {
+    const b = document.querySelector(`[data-badge="${src.name}"]`);
+    if (b) fillBadge(b, src);
+  }
+});
 
 /* ---- vaste adressen ---- */
 function placeRow(p = {}) {
