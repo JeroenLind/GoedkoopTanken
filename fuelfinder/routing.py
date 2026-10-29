@@ -121,7 +121,7 @@ class Router:
 
     def detours(self, a: tuple[float, float], b: tuple[float, float],
                 points: list[tuple[float, float]]) -> list[Route]:
-        """Per punt de omweg ten opzichte van de directe route a -> b.
+        """Per punt de omweg ten opzichte van de snelste route a -> b (de referentieroute; OSRM rekent op rijtijd).
 
         Het resultaat gebruikt `Route` zo, dat `km_out` de extra kilometers is en `min_out` de
         extra minuten (`km_back` en `min_back` zijn 0). Zo rekent de rest van het programma

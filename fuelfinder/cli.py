@@ -38,7 +38,7 @@ def cmd_find(args, cfg) -> int:
     print(f"{'Vertrek:  ' if route else 'Thuis:    '}  {out.home_label}")
     if route:
         print(f"Bestemming:  {out.dest_label}")
-        print(f"Route:       {eur(out.route_km, 1)} km, {out.route_min:.0f} min direct; "
+        print(f"Snelste route: {eur(out.route_km, 1)} km, {out.route_min:.0f} min (referentie voor de omweg); "
               f"zoeken tot {eur(out.corridor_km, 0)} km naast de route")
     if veh:
         print(f"Auto:       {veh.plate} {veh.description}".rstrip())
@@ -91,7 +91,7 @@ def cmd_find(args, cfg) -> int:
         row(results.index(baseline) + 1, baseline)
     if route:
         print(f"\nPrijs = EUR/liter. Tank = {eur(out.fill_liters, 0)} liter tanken. Extra km/Omweg = extra afstand en "
-              "tijd t.o.v. de directe route.\nOmrit = brandstofkosten van die omweg. Totaal = Tank + Omrit. "
+              "tijd t.o.v. de snelste route.\nOmrit = brandstofkosten van die omweg. Totaal = Tank + Omrit. "
               "Besparing = Totaal van het station met de kleinste omweg min dit Totaal.")
     else:
         print(f"\nPrijs = EUR/liter. Tank = {eur(out.fill_liters, 0)} liter tanken. Retour/Tijd = heen en terug naar huis. "

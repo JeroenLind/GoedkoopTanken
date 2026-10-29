@@ -195,6 +195,7 @@ sequenceDiagram
 - **Zoekbreedte**: standaard 0,4 km per toegestane minuut omweg, begrensd tussen 3 en 15 km (zonder limiet 10 km). Reden: een zijstap van d km kost ongeveer 2d km rijden.
 - **Zoekgebieden**: cirkels met een straal van 20 km langs de route, op een afstand van elkaar die uit de zoekbreedte volgt (`stap = 2 × √(r² − breedte²)`, met een marge van 1,1 voor bochten). Maximaal 20 cirkels, ruim 600 km route.
 - **Omweg**: voor elk station `(A naar station) + (station naar B) − (A naar B)`. Dat gaat in twee aanvragen aan de routeserver voor alle kandidaten tegelijk (D-7).
+- **Referentieroute**: de snelste route A naar B van de routeserver. Kilometers en minuten van elke omweg zijn daaraan gemeten; lengte en rijtijd van die route staan in de uitkomst (`route_km`, `route_min`) en worden als referentie getoond (D-26).
 - **Maximale afstand** (optioneel): stations met een rijafstand vanaf het vertrek boven de grens vallen af voordat de referentie wordt bepaald (D-24).
 - **Bestemming** komt uit coördinaten, een adres, of de naam van een vast adres. Een lege bestemming betekent het vaste adres "Werk", als dat bestaat; anders volgt een foutmelding (5.6).
 - **Vertrek en bestemming bijna gelijk** (minder dan 0,3 km): foutmelding, met de verwijzing naar zoeken rond een punt.
@@ -253,7 +254,7 @@ flowchart TD
 
 - **Tabel en kaartjes**: dezelfde regels (`<tr>`) worden op een breed scherm als tabel getoond en tot 700 px breed met CSS als kaartje (D-18).
 - **Kaart**: route, vertrekpunt, bestemming, genummerde stations en grijze stippen voor doorgerekende stations die niet in de tabel staan. Een klik op een regel, pin of stip selecteert het station.
-- **Berekening per station**: een paneel toont stap voor stap hoe totaal en besparing zijn berekend. De omweg via dat station wordt apart opgehaald (`/api/via`: route vertrek, station, bestemming) en op de kaart getekend.
+- **Berekening per station**: een paneel toont stap voor stap hoe totaal en besparing zijn berekend. De omweg via dat station wordt apart opgehaald (`/api/via`: route vertrek, station, bestemming) en op de kaart getekend. Bij een route toont het paneel ook de omweg ten opzichte van de snelste route (D-26).
 - **Herkomst**: elk station toont zijn bron en of de gegevens vers of uit de cache zijn, met leeftijd.
 - **Export**: `/api/export` geeft de laatste berekening als JSON-download: alle bekeken stations, per station de status (getoond, weggelaten door de tijdlimiet, buiten de zoekbreedte, geen prijs, gesloten, niet doorgerekend, dubbel), het nummer `nr` en `on_screen` ("tabel en kaart", "alleen kaart").
 
@@ -512,6 +513,14 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Reden:** ANWB levert drie landen, Tankerkönig er één; alleen per land aan of uit zetten past daarbij. Een nieuwe bron of een nieuw land vraagt zo geen aanpassing van de interface.
 - **Afgewezen:** één lijst aan/uit voor alle landen (te grof); het land uit de bron zelf halen (niet elke bron levert het); de oude instelling omzetten (Jeroen: mag vervallen, de standaard geldt).
 
+### D-26. Snelste route als referentie voor de omweg
+
+- **Besluit door:** Jeroen (GitHub-issue 2), Claude (uitwerking). **Eisen:** FR-9, FR-35.
+- **Keuze:** alleen bij zoeken langs een route is de snelste route van vertrek naar bestemming de referentie voor alle extra kilometers en minuten. Dat is wat de routeserver (OSRM) al rekent; het wordt nu expliciet gemaakt: de uitkomst en de export noemen de referentieroute (`reference_route: "fastest"`) en het detailpaneel toont per station de omweg ten opzichte daarvan, naast de besparing ten opzichte van het station met de kleinste omweg (D-4).
+- **Reden:** het issue vraagt dat alle extra afstanden relatief zijn aan één referentieroute. De omweg uit D-7 is al zo gedefinieerd; zichtbaar maken voorkomt verwarring over wat "extra" is.
+- **Afgewezen:** een aparte kortste route (de OSRM-tabel rekent op rijtijd en de publieke server heeft geen kortste-route-profiel; Jeroen koos alleen de snelste); een keuze per zoekopdracht; extra routeaanvragen per station; een extra tabelkolom (Jeroen: eerst het detailpaneel proberen).
+- **Buiten bereik:** zoeken rondom een locatie verandert niet; actueel verkeer is een apart issue.
+
 ## 9. Traceerbaarheid: eisen naar ontwerp
 
 | Eis | Ontwerpkeuze | Modules en tests |
@@ -523,7 +532,8 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-5 Routering en adressen | D-6 | `routing.py`, `geo.py`; `test_all.py` |
 | FR-6 Resultaat en besparing | D-4 | `calc.py`, `web.serialize`; `test_web.py` |
 | FR-7 Prijscache | D-9, D-10 | `cache.py`; `test_cache.py` |
-| FR-8, FR-9 Langs een route | D-7, D-8 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |
+| FR-8, FR-9 Langs een route | D-7, D-8, D-26 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |
+| FR-35 Omweg t.o.v. snelste route in het detailpaneel | D-26 | `web.serialize`, `static/index.html`, `service.export_data`; `test_web.py`, `test_export.py` |
 | FR-10 Bestemming op kaart | D-16 | `static/index.html`; handmatig en browsertest |
 | FR-11 Omdraaien | D-15 | `static/index.html` |
 | FR-12 Maximale afstand | D-24 | `calc.rank_along`, `routing._osrm_detours`, `service.export_data`; `test_route.py` |

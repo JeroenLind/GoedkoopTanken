@@ -61,6 +61,8 @@ class ExportTests(unittest.TestCase):
         self.assertEqual({r["source_label"] for r in data["stations"]}, {"ANWB Onderweg"})
         self.assertEqual(data["counts"]["stations_seen"], 4)
         self.assertEqual(data["query"]["mode"], "route")
+        self.assertEqual(data["query"]["reference_route"], "fastest")
+        self.assertEqual(data["route"]["type"], "fastest")
         self.assertGreater(len(data["route"]["line"]), 1)
         self.assertGreaterEqual(len(data["query"]["searched_areas"]), 2)
 

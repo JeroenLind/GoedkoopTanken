@@ -79,7 +79,7 @@ def serialize(out: service.SearchOutput, max_results: int) -> dict:
         "mode": out.mode,
         "home": {"lat": out.home[0], "lon": out.home[1], "label": out.home_label},
         "dest": ({"lat": out.dest[0], "lon": out.dest[1], "label": out.dest_label} if out.dest else None),
-        "route": ({"km": round(out.route_km, 1), "min": round(out.route_min),
+        "route": ({"type": "fastest", "km": round(out.route_km, 1), "min": round(out.route_min),
                    "line": [[round(a, 5), round(b, 5)] for a, b in out.route_line]} if out.mode == "route" else None),
         "others": others,
         "corridor_km": out.corridor_km if out.mode == "route" else None,

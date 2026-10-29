@@ -1137,9 +1137,16 @@ function showDetail(d, r) {         // de volledige berekening van één station
   }
   const extra = route ? r.minutes : r.extra_min;
   rows.push(row(route ? "Omweg in tijd" : "Rijtijd",
-    route ? `${r.minutes} min extra ten opzichte van de directe route${est}`
+    route ? `${r.minutes} min extra ten opzichte van de snelste route${est}`
       : `${r.minutes} min heen en terug${r.is_baseline ? "" : `, ${r.extra_min > 0 ? "+" : ""}${r.extra_min} min ten opzichte van ${base.name}`}${est}`,
     `${r.minutes} min`));
+  if (route && d.route) {           // de omweg afgezet tegen de referentieroute (snelste route)
+    const viaKm = d.route.km + r.km_exact, viaMin = d.route.min + r.minutes;
+    rows.push(row("Omweg t.o.v. snelste route",
+      `Snelste route ${nl(d.route.km, 1)} km, ${d.route.min} min. Via dit station ${nl(viaKm, 1)} km, ${viaMin} min: ` +
+      `${nl(r.km_exact, 2)} km en ${r.minutes} min extra${est}`,
+      `+${nl(r.km_exact, 1)} km`));
+  }
   if (!r.is_baseline && extra > 0 && r.saving > 0)
     rows.push(row("Per extra uur", `${eur(r.saving)} besparing ÷ ${extra} min extra`, eur(r.saving / (extra / 60))));
   rows.push(row("Gegevens", `${r.source_label}${r.address ? ", " + r.address : ""}. ${sourceNote(r).split(" · ")[1]}.`, ""));
@@ -1164,7 +1171,7 @@ async function drawVia(d, r) {
   if (!resmap.getBounds().contains(vb)) resmap.fitBounds(vb.pad(0.15), { maxZoom: 14 });
   const est = v.estimated ? " (geschat, rechte lijnen)" : "";
   note.textContent = d.mode === "route"
-    ? `Via ${r.name}: ${nl(v.km, 1)} km, ${v.min} min, tegenover ${nl(d.route.km, 1)} km, ${d.route.min} min direct${est}.`
+    ? `Via ${r.name}: ${nl(v.km, 1)} km, ${v.min} min, tegenover ${nl(d.route.km, 1)} km, ${d.route.min} min op de snelste route${est}.`
     : `Rit heen en terug naar ${r.name}: ${nl(v.km, 1)} km, ${v.min} min${est}.`;
 }
 
@@ -1220,7 +1227,7 @@ function render(d) {
   main.append(h("ul", { class: "context" },
     h("li", null, "Vertrek: ", h("b", null, short(d.home.label))),
     route && h("li", null, "Bestemming: ", h("b", null, short(d.dest.label))),
-    route && h("li", null, "Route: ", h("b", null, `${nl(d.route.km, 0)} km, ${d.route.min} min`), d.any_estimated ? " (geschat)" : ""),
+    route && h("li", null, "Snelste route: ", h("b", null, `${nl(d.route.km, 0)} km, ${d.route.min} min`), d.any_estimated ? " (geschat)" : ""),
     car && h("li", null, "Auto: ", h("b", null, car)),
     h("li", null, "Brandstof: ", h("b", null, d.fuel_label)),
     h("li", null, "Verbruik: ", h("b", null, `${nl(c.real, 1)} l/100 km`), ` (${how})`),
@@ -1241,7 +1248,7 @@ function render(d) {
        ["Omrit", ""], ["Totaal", ""], ["Extra tijd", ""], ["Besparing", ""], ["", "nav"]];
   const tips = { Prijs: "euro per liter", Tank: `${nl(d.fill_liters, 0)} liter tanken`, Retour: "kilometers heen en terug naar je vertrekpunt",
     Tijd: "rijtijd heen en terug", Omrit: route ? "brandstofkosten van de omweg" : "brandstofkosten van de rit heen en terug",
-    Totaal: "Tank + Omrit", "Extra km": "extra afstand ten opzichte van de directe route", Omweg: "extra rijtijd ten opzichte van de directe route",
+    Totaal: "Tank + Omrit", "Extra km": "extra afstand ten opzichte van de snelste route", Omweg: "extra rijtijd ten opzichte van de snelste route",
     "Extra tijd": "Tijd min de tijd van het dichtstbijzijnde station",
     Besparing: route ? "Totaal van het station met de kleinste omweg min dit Totaal" : "Totaal van het dichtstbijzijnde station min dit Totaal" };
   const thead = h("thead", null, h("tr", null, ...cols.map(([t, k]) =>
@@ -1284,7 +1291,7 @@ function render(d) {
 
   const legend = h("div", { class: "legend" },
     h("p", null, route
-      ? "Bedragen in euro. Extra km en omweg zijn het verschil met de directe route naar je bestemming. Totaal is tanken plus " +
+      ? "Bedragen in euro. Extra km en omweg zijn het verschil met de snelste route naar je bestemming. Totaal is tanken plus " +
         "de brandstof voor die omweg. Besparing geldt ten opzichte van het station met de kleinste omweg."
       : "Bedragen in euro. Totaal is tanken plus de brandstof voor de rit heen en terug naar je vertrekpunt. " +
         "Besparing en extra tijd gelden ten opzichte van het dichtstbijzijnde station."));

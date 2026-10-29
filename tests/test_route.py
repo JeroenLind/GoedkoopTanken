@@ -100,6 +100,17 @@ class RouteServiceTests(unittest.TestCase):
         self.assertEqual(r.min_round_trip, round((via - direct) / 60 * 60))
         self.assertEqual(r.detour_cost, round(r.km_round_trip * out.real_consumption / 100 * r.price, 2))
 
+    def test_reference_is_the_fastest_route_and_all_extras_are_relative_to_it(self):
+        out = self.go()
+        direct = geo.haversine_km(*A, *B) * 1.2   # snelste route in de nep-OSRM
+        self.assertAlmostEqual(out.route_km, direct, places=2)
+        self.assertAlmostEqual(out.route_min, direct / 60 * 60, delta=0.5)
+        for r in out.results:
+            s = r.station
+            via = (geo.haversine_km(*A, s.lat, s.lon) + geo.haversine_km(s.lat, s.lon, *B)) * 1.2
+            self.assertAlmostEqual(out.route_km + r.km_round_trip, via, places=2)   # referentie + omweg = via station
+            self.assertEqual(r.km_back, 0.0)
+
     def test_max_km_drops_stations_too_far_from_the_start(self):
         out = self.go(max_km=10, corridor_km=10)
         self.assertEqual([r.station.name for r in out.results], ["ANWB-4"])   # de rest ligt ruim 20 km weg

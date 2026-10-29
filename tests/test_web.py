@@ -183,11 +183,17 @@ class WebTests(unittest.TestCase):
         status, data, _ = self.call("POST", "/api/search", {**self.route_body({"lat": "52.0", "lon": "6.6"}), "max_km": ""})
         self.assertEqual((status, data["max_km"]), (200, None))
 
+    def test_around_search_has_no_reference_route(self):
+        status, data, _ = self.call("POST", "/api/search", dict(self.SEARCH))
+        self.assertEqual(status, 200, data)
+        self.assertIsNone(data["route"])
+
     def test_route_search_through_api(self):
         status, data, _ = self.call("POST", "/api/search", self.route_body({"lat": "52.0", "lon": "6.6"}))
         self.assertEqual(status, 200, data)
         self.assertEqual((data["mode"], data["dest"]["lat"]), ("route", 52.0))
         self.assertGreater(data["route"]["km"], 10)
+        self.assertEqual(data["route"]["type"], "fastest")   # referentie voor de omweg
         self.assertEqual(data["corridor_km"], 10.0)   # geen tijdlimiet in SEARCH
         rows = data["results"]
         base = next(r for r in rows if r["is_baseline"])

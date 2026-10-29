@@ -82,7 +82,7 @@ class SearchOutput:
     mode: str = "around"  # "around" (rondom een locatie) of "route" (langs een route)
     dest: tuple[float, float] | None = None
     dest_label: str = ""
-    route_km: float = 0.0     # lengte en rijtijd van de directe route
+    route_km: float = 0.0     # lengte en rijtijd van de snelste route (de referentieroute)
     route_min: float = 0.0
     corridor_km: float = 0.0
     max_km: float | None = None   # maximale rijafstand naar het station (alleen bij een route)
@@ -91,7 +91,7 @@ class SearchOutput:
     stations: list = field(default_factory=list)   # alle stations na samenvoegen van de bronnen
     dropped: list = field(default_factory=list)    # (weggelaten dubbel, winnend station)
     ranked: list = field(default_factory=list)     # alle doorgerekende stations, vóór de tijdlimiet
-    route_line: list = field(default_factory=list)  # [(lat, lon), ...] van de directe route
+    route_line: list = field(default_factory=list)  # [(lat, lon), ...] van de snelste route (de referentieroute)
     searched_areas: list = field(default_factory=list)  # [(lat, lon, straal_km), ...] bij de bronnen opgevraagd
 
     @property
@@ -385,6 +385,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
             "corridor_km": out.corridor_km if route else None,
             "max_extra_min": out.max_extra_min,
             "max_km": out.max_km if route else None,
+            "reference_route": "fastest" if route else None,
             "searched_areas": [{"lat": a, "lon": b, "radius_km": c} for a, b, c in out.searched_areas],
         },
         "sources": {name: {"label": SOURCE_LABELS.get(name, name), "message": msg,
@@ -392,7 +393,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
                            "age_min": round(out.sources[name].age_s / 60) if name in out.sources else None}
                     for name, msg in out.provider_messages.items()},
         "warnings": out.warnings, "notice": out.notice,
-        "route": ({"km": round(out.route_km, 2), "min": round(out.route_min, 1),
+        "route": ({"type": "fastest", "km": round(out.route_km, 2), "min": round(out.route_min, 1),
                    "line": [[round(a, 5), round(b, 5)] for a, b in out.route_line]} if route else None),
         "counts": {"stations_seen": len(out.stations), "duplicates_dropped": len(out.dropped),
                    "routed": len(out.ranked), "in_results": len(out.results),

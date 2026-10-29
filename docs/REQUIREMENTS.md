@@ -44,7 +44,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | Nr. | Eis | Herkomst | Status |
 | --- | --- | --- | --- |
 | FR-8 | Naast zoeken rond een punt is er een tweede modus: het goedkoopste station langs een route van A naar B (bijvoorbeeld van huis naar werk), met dezelfde logica dat de gebruiker er maar beperkt voor wil omrijden. | Jeroen | Klaar |
-| FR-9 | Bij een route is de omweg het aantal extra kilometers en minuten ten opzichte van de directe route; de tijdlimiet geldt voor die omweg. | Jeroen | Klaar |
+| FR-9 | Bij een route is de omweg het aantal extra kilometers en minuten ten opzichte van de snelste route van vertrek naar bestemming (de referentieroute); de tijdlimiet geldt voor die omweg. Er is geen aparte keuze voor de kortste route. | Jeroen | Klaar |
 | FR-10 | De bestemming kan als adres worden getypt of op een kaart worden gekozen. | Jeroen | Klaar |
 | FR-11 | Vertrek en bestemming kunnen worden omgedraaid (voor de terugweg). | Jeroen | Klaar |
 | FR-12 | Bij een route kan de gebruiker een maximaal te rijden afstand invullen (rijafstand van het vertrek naar het station), voor het geval de tank bijna leeg is. Stations die verder weg liggen vallen af. | Jeroen | Klaar |
@@ -82,6 +82,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-32 | Staan er in een land meerdere bronnen aan, dan heeft de gebruiker een prioriteit (volgorde) per land. Levert meer dan één bron hetzelfde station, dan geldt de bron met de hoogste prioriteit. | Jeroen | Klaar |
 | FR-33 | De lijst met bronnen en landen is later makkelijk uit te breiden: een nieuw land of een nieuwe bron toevoegen vraagt geen aanpassing van de interface. | Jeroen | Klaar |
 | FR-34 | De eerdere, algemene bronkeuze (één lijst aan/uit voor alle landen) vervalt bij deze wijziging; bestaande instellingen hoeven niet te worden omgezet. De nieuwe standaard geldt dan. | Jeroen | Klaar |
+| FR-35 | Bij een route toont het detailpaneel per station de omweg ten opzichte van de snelste route (extra kilometers en minuten, met de lengte en rijtijd van de referentieroute), naast de besparing ten opzichte van het station met de kleinste omweg. De tabel blijft ongewijzigd; een extra kolom is later nog te bepalen. Dit geldt alleen bij zoeken langs een route. | Jeroen | Klaar |
 
 ### 3.6 Locatie en Home Assistant
 
