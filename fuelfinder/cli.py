@@ -10,7 +10,7 @@ from pathlib import Path
 from . import config, geo, http, service, vehicle
 from .cache import StationCache, age_text
 from .models import FUEL_LABELS, FUELS
-from .providers import build_providers, collect
+from .providers import build_providers, collect, enabled_map
 from .routing import Router
 
 
@@ -111,8 +111,9 @@ def cmd_stations(args, cfg) -> int:
         lat, lon, label = service.resolve_home(cfg, args.lat, args.lon, args.address)
     except service.SearchError as e:
         sys.exit(str(e))
-    providers = build_providers(cfg, args.providers.split(",") if args.providers else None)
-    stations, messages = collect(providers, lat, lon, args.radius or cfg.radius_km)
+    names = args.providers.split(",") if args.providers else None
+    providers = build_providers(cfg, names)
+    stations, messages = collect(providers, lat, lon, args.radius or cfg.radius_km, enabled=enabled_map(cfg, names))
     print(f"Thuis: {label}")
     for name, msg in messages.items():
         print(f"  bron {name}: {msg}")

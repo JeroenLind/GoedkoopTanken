@@ -34,8 +34,14 @@ FUEL_MAP = {
 
 class AnwbProvider(Provider):
     name = "anwb"
+    label = "ANWB Onderweg"
     # Dekking volgens pyfuelprices; wij gebruiken NL, DE en BE.
     countries = ("NL", "DE", "BE")
+    official = False
+    note = ("ANWB Onderweg is geen officiële, gedocumenteerde bron. Die kan zonder bericht veranderen of "
+            "wegvallen, en is niet door de ANWB goedgekeurd voor dit gebruik. Gebruik is op eigen risico; "
+            "zet de bron uit als je dat liever niet wilt.")
+    test_point = (51.1942, 5.9876, "Roermond")
     attribution = "Prijzen: ANWB Onderweg"
 
     def __init__(self):

@@ -74,9 +74,14 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | --- | --- | --- | --- |
 | FR-22 | Per bron is er een testknop die de verbinding en de API-sleutel controleert, naar aanleiding van een time-out bij Tankerkönig. | Jeroen | Klaar |
 | FR-23 | Instellingen worden in de app zelf gedaan en bewaard (niet in de Home Assistant-configuratiepagina); alleen technische opties staan in Home Assistant. | Jeroen | Klaar |
-| FR-24 | De ANWB-bron staat standaard aan, met een duidelijke disclaimer dat het geen officiële bron is, en kan worden uitgezet. | Jeroen | Klaar |
+| FR-24 | De ANWB-bron staat standaard aan (voor de landen die hij dekt), met een duidelijke disclaimer dat het geen officiële bron is, en kan per land worden uitgezet (zie FR-31). | Jeroen | Klaar |
 | FR-25 | De standaard zoekstraal is 20 km. | Jeroen | Klaar |
 | FR-29 | België is het derde land, naast Nederland en Duitsland: stations in België komen in de zoekresultaten, met dezelfde omritlogica en dezelfde bronweergave. De prijzen komen uit ANWB Onderweg; Jeroen heeft gezien dat die bron Belgische prijzen levert. | Jeroen | Klaar |
+| FR-30 | In de instellingen staat een lijst met alle beschikbare bronnen. Per bron zijn zichtbaar: de naam, de landen die hij dekt, de status (werkt, sleutel ontbreekt), een testknop, de bronspecifieke opties (zoals de Tankerkönig-sleutel) en de toelichting of disclaimer. | Jeroen | Klaar |
+| FR-31 | Naast de bronnenlijst staat een losse lijst met landen. Per land zet de gebruiker de bronnen aan of uit; alleen bronnen die dat land dekken staan erbij. Een land zonder actieve bron levert geen stations en de app waarschuwt daarvoor. | Jeroen | Klaar |
+| FR-32 | Staan er in een land meerdere bronnen aan, dan heeft de gebruiker een prioriteit (volgorde) per land. Levert meer dan één bron hetzelfde station, dan geldt de bron met de hoogste prioriteit. | Jeroen | Klaar |
+| FR-33 | De lijst met bronnen en landen is later makkelijk uit te breiden: een nieuw land of een nieuwe bron toevoegen vraagt geen aanpassing van de interface. | Jeroen | Klaar |
+| FR-34 | De eerdere, algemene bronkeuze (één lijst aan/uit voor alle landen) vervalt bij deze wijziging; bestaande instellingen hoeven niet te worden omgezet. De nieuwe standaard geldt dan. | Jeroen | Klaar |
 
 ### 3.6 Locatie en Home Assistant
 

@@ -148,8 +148,10 @@ documentatie en de broncode van de bibliotheek pyfuelprices, maar nog niet live 
 ## Nieuwe bron of grens toevoegen
 
 Maak `fuelfinder/providers/<naam>.py` met een `Provider`-klasse (methode `fetch(lat, lon, radius_km)`
-die `Station`-objecten teruggeeft), registreer hem in `providers/__init__.py` en zet de naam in
-`enabled` in `config.toml`. De rekenkern verandert niet.
+die `Station`-objecten teruggeeft), registreer hem in `PROVIDER_CLASSES` in `providers/__init__.py`. Naam, label, landen, toelichting en
+testpunt staan als eigenschappen in de klasse; het menu (Bronnen en Landen) toont de bron dan vanzelf bij elk
+land dat hij dekt. Een nieuw land komt in `countries.COUNTRIES` (grenzen maken met `scripts/maak_landgrenzen.py`).
+De rekenkern verandert niet.
 
 ## Tests
 

@@ -11,8 +11,8 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from .models import FUELS
+from .providers import clean_countries, catalog, default_countries
 
-KNOWN_PROVIDERS = ("tankerkoenig", "anwb")
 DEFAULT_OSRM = "https://router.project-osrm.org"
 DEFAULT_NOMINATIM = "https://nominatim.openstreetmap.org"
 
@@ -33,7 +33,8 @@ class Config:
     radius_km: float = 20.0
     max_results: int = 10
     max_extra_min: float | None = 30.0  # None = geen limiet
-    providers: list[str] = field(default_factory=lambda: ["tankerkoenig", "anwb"])
+    # Per land de bronnen die aan staan, in volgorde van prioriteit: {"NL": ["anwb"], "DE": ["tankerkoenig", "anwb"], ...}
+    countries: dict = field(default_factory=default_countries)
     tankerkoenig_key: str | None = None  # in gebruik: omgevingsvariabele wint van het bestand
     tankerkoenig_key_file: str | None = None  # wat er in config.toml staat
     allow_e10: bool = True
@@ -84,7 +85,7 @@ def load(path: str | None = None) -> Config:
         radius_km=search.get("radius_km", 20.0),
         max_results=search.get("max_results", 10),
         max_extra_min=search.get("max_extra_min", 30.0) or None,  # 0 = geen limiet
-        providers=prov.get("enabled", ["tankerkoenig", "anwb"]),
+        countries=clean_countries(prov.get("countries"), strict=False),  # het oude "enabled" telt niet meer
         tankerkoenig_key=os.environ.get("TANKERKOENIG_API_KEY") or key_file,
         tankerkoenig_key_file=key_file,
         allow_e10=tk.get("allow_e10", True),
@@ -117,8 +118,8 @@ def to_dict(cfg: Config) -> dict:
                     "real_world_factor": cfg.real_world_factor},
         "search": {"fill_liters": cfg.fill_liters, "radius_km": cfg.radius_km,
                    "max_results": cfg.max_results, "max_extra_min": cfg.max_extra_min or 0},
-        "providers": {"enabled": list(cfg.providers), "allow_e10": cfg.allow_e10,
-                      "tankerkoenig_key_source": key_source(cfg)},
+        "providers": {"countries": {c: list(v) for c, v in cfg.countries.items()}, "allow_e10": cfg.allow_e10,
+                      "tankerkoenig_key_source": key_source(cfg), "catalog": catalog()},
         "routing": {"enabled": cfg.use_routing, "osrm_url": cfg.osrm_url,
                     "nominatim_url": cfg.nominatim_url},
         "ha": {"tracker": cfg.ha_tracker or ""},
@@ -225,12 +226,7 @@ def from_dict(d: dict, base: Config | None = None) -> Config:
     if fuel and fuel not in FUELS:
         raise ValueError(f"Brandstof: onbekende waarde '{fuel}'")
 
-    enabled = prov.get("enabled", base.providers)
-    if not isinstance(enabled, list) or not enabled:
-        raise ValueError("Bronnen: kies minstens één bron")
-    unknown = [p for p in enabled if p not in KNOWN_PROVIDERS]
-    if unknown:
-        raise ValueError(f"Bronnen: onbekend: {', '.join(unknown)}")
+    countries = clean_countries(prov["countries"]) if "countries" in prov else base.countries
 
     new_key = (prov.get("tankerkoenig_api_key") or "").strip()
     cfg = replace(
@@ -249,7 +245,7 @@ def from_dict(d: dict, base: Config | None = None) -> Config:
                          integer=True),
         max_extra_min=_num(srch.get("max_extra_min", base.max_extra_min or 0),
                            "Maximale extra tijd", 0, 600) or None,
-        providers=list(enabled),
+        countries={c: list(v) for c, v in countries.items()},
         allow_e10=bool(prov.get("allow_e10", base.allow_e10)),
         use_routing=bool(rout.get("enabled", base.use_routing)),
         osrm_url=(rout.get("osrm_url") or DEFAULT_OSRM).strip().rstrip("/"),
@@ -294,7 +290,8 @@ def to_toml(cfg: Config) -> str:
     lines.append(f"real_world_factor = {cfg.real_world_factor!r}")
     lines += ["", "[search]", f"fill_liters = {cfg.fill_liters!r}", f"radius_km = {cfg.radius_km!r}",
               f"max_results = {int(cfg.max_results)}", f"max_extra_min = {(cfg.max_extra_min or 0)!r}",
-              "", "[providers]", "enabled = [" + ", ".join(_s(p) for p in cfg.providers) + "]",
+              "", "[providers.countries]",
+              *(f"{code} = [" + ", ".join(_s(n) for n in names) + "]" for code, names in cfg.countries.items()),
               "", "[providers.tankerkoenig]", f"api_key = {_s(cfg.tankerkoenig_key_file or '')}",
               f"allow_e10 = {str(cfg.allow_e10).lower()}",
               "", "[routing]", f"enabled = {str(cfg.use_routing).lower()}",

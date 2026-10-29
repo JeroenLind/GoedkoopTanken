@@ -213,7 +213,7 @@ class ServiceCacheTests(unittest.TestCase):
         self.patch = mock.patch.object(fhttp, "fetch_json", self.net)
         self.patch.start()
         self.cfg = config.Config(home_lat=HOME[0], home_lon=HOME[1], fuel="petrol95", consumption=7.0,
-                                 providers=["anwb"], use_routing=False, cache_dir=str(Path(self.tmp.name) / "c"),
+                                 countries={"NL": ["anwb"], "DE": ["anwb"], "BE": ["anwb"]}, use_routing=False, cache_dir=str(Path(self.tmp.name) / "c"),
                                  max_extra_min=None)
 
     def tearDown(self):

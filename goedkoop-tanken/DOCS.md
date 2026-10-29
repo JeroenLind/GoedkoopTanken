@@ -20,7 +20,7 @@ Alle instellingen worden in de app bewaard en blijven na een update of herstart 
 ## Privacy en bronnen
 
 - Je locatie en zoekopdrachten gaan naar: ANWB Onderweg, Tankerkönig, een OSRM-routeserver, Nominatim (adressen) en OpenStreetMap-kaarttegels (je browser).
-- **ANWB Onderweg** is geen officiële, gedocumenteerde bron en kan zonder bericht wijzigen of wegvallen. Zet de bron uit in het menu als je dat liever niet gebruikt.
+- **ANWB Onderweg** is geen officiële, gedocumenteerde bron en kan zonder bericht wijzigen of wegvallen. Zet de bron per land uit in het menu (Landen) als je dat liever niet gebruikt.
 - De Tankerkönig-sleutel staat in `/data` en komt dus ook in je Home Assistant-back-ups.
 - De add-on leest van Home Assistant alleen de lijst met trackers en de locatie van de tracker die je kiest. Er wordt niets geschreven.
 
