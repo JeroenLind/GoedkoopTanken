@@ -82,7 +82,7 @@ class SearchOutput:
     mode: str = "around"  # "around" (rondom een locatie) of "route" (langs een route)
     dest: tuple[float, float] | None = None
     dest_label: str = ""
-    route_km: float = 0.0     # lengte en rijtijd van de directe route
+    route_km: float = 0.0     # lengte en rijtijd van de snelste route
     route_min: float = 0.0
     corridor_km: float = 0.0
     max_km: float | None = None   # maximale rijafstand naar het station (alleen bij een route)
@@ -91,7 +91,7 @@ class SearchOutput:
     stations: list = field(default_factory=list)   # alle stations na samenvoegen van de bronnen
     dropped: list = field(default_factory=list)    # (weggelaten dubbel, winnend station)
     ranked: list = field(default_factory=list)     # alle doorgerekende stations, vóór de tijdlimiet
-    route_line: list = field(default_factory=list)  # [(lat, lon), ...] van de directe route
+    route_line: list = field(default_factory=list)  # [(lat, lon), ...] van de snelste route
     searched_areas: list = field(default_factory=list)  # [(lat, lon, straal_km), ...] bij de bronnen opgevraagd
 
     @property

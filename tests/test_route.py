@@ -86,7 +86,7 @@ class RouteServiceTests(unittest.TestCase):
         base = out.baseline
         self.assertEqual(base.station.name, "ANWB-1")   # kleinste omweg
         self.assertLess(base.km_round_trip, 0.5)
-        self.assertGreater(out.results[0].km_round_trip, 2.0)   # extra km t.o.v. de directe route
+        self.assertGreater(out.results[0].km_round_trip, 2.0)   # extra km t.o.v. de snelste route
         self.assertEqual(out.results[0].saving_vs_baseline,
                          round(base.total - out.results[0].total, 2))
 

@@ -44,10 +44,11 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | Nr. | Eis | Herkomst | Status |
 | --- | --- | --- | --- |
 | FR-8 | Naast zoeken rond een punt is er een tweede modus: het goedkoopste station langs een route van A naar B (bijvoorbeeld van huis naar werk), met dezelfde logica dat de gebruiker er maar beperkt voor wil omrijden. | Jeroen | Klaar |
-| FR-9 | Bij een route is de omweg het aantal extra kilometers en minuten ten opzichte van de directe route; de tijdlimiet geldt voor die omweg. | Jeroen | Klaar |
+| FR-9 | Bij een route is de omweg het aantal extra kilometers en minuten ten opzichte van de snelste route (zie FR-38); de tijdlimiet geldt voor die omweg. | Jeroen | Klaar |
 | FR-10 | De bestemming kan als adres worden getypt of op een kaart worden gekozen. | Jeroen | Klaar |
 | FR-11 | Vertrek en bestemming kunnen worden omgedraaid (voor de terugweg). | Jeroen | Klaar |
 | FR-12 | Bij een route kan de gebruiker een maximaal te rijden afstand invullen (rijafstand van het vertrek naar het station), voor het geval de tank bijna leeg is. Stations die verder weg liggen vallen af. | Jeroen | Klaar |
+| FR-38 | Bij zoeken langs een route is de snelste route van vertrek naar bestemming de referentie voor alle extra kilometers en minuten (issue #2); een kortste-routeoptie komt er niet. Het detailpaneel toont zowel de besparing ten opzichte van het station met de kleinste omweg als de omweg (km en minuten) ten opzichte van de snelste route; in de tabel komt geen extra kolom (nog te beoordelen na gebruik). Verkeer valt hier buiten (issue #1). | Jeroen | Klaar |
 
 ### 3.3 Vaste adressen
 

@@ -91,7 +91,7 @@ def cmd_find(args, cfg) -> int:
         row(results.index(baseline) + 1, baseline)
     if route:
         print(f"\nPrijs = EUR/liter. Tank = {eur(out.fill_liters, 0)} liter tanken. Extra km/Omweg = extra afstand en "
-              "tijd t.o.v. de directe route.\nOmrit = brandstofkosten van die omweg. Totaal = Tank + Omrit. "
+              "tijd t.o.v. de snelste route.\nOmrit = brandstofkosten van die omweg. Totaal = Tank + Omrit. "
               "Besparing = Totaal van het station met de kleinste omweg min dit Totaal.")
     else:
         print(f"\nPrijs = EUR/liter. Tank = {eur(out.fill_liters, 0)} liter tanken. Retour/Tijd = heen en terug naar huis. "

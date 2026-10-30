@@ -52,7 +52,7 @@ voor de terugweg). Vaste adressen (Werk, school, familie, enz.) stel je in via h
     python -m goedkooptanken find --to 51.25,5.71 --corridor 8
 
 Hoe het rekent:
-- De omweg is het verschil met de directe route: (vertrek, station, bestemming) min (vertrek, bestemming),
+- De omweg is het verschil met de snelste route: (vertrek, station, bestemming) min (vertrek, bestemming),
   in kilometers en minuten. Alleen die omweg kost extra brandstof; de route zelf rij je toch.
 - Tanken wordt gewaardeerd tegen de prijs van het station, net als bij zoeken rondom een locatie.
 - De referentie voor de besparing is het station met de kleinste omweg (het station dat het best op je

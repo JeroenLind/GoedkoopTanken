@@ -387,6 +387,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Keuze:** `omweg = (A naar station) + (station naar B) − (A naar B)`, uit twee tabelaanvragen (alles vanaf A, alles naar B). Het resultaat hergebruikt het bestaande `Result`: `km_out` is de extra afstand, `km_back` is 0.
 - **Reden:** de hele rangschikking, besparing en weergave werkt dan voor beide modi zonder aparte code. Twee aanvragen dekken alle kandidaten.
 - **Afgewezen:** per station een volledige route opvragen (veel aanvragen); een apart resultaattype voor routes (dubbele code in kern en UI).
+- **Referentieroute (FR-38, issue #2, besluit door Jeroen):** `A naar B` is de snelste route, want OSRM rekent met de snelste weg; die geldt voor alle extra kilometers en minuten. Een kortste-routeoptie is bewust niet gebouwd. De interface noemt het "snelste route" en toont in het detailpaneel zowel de besparing ten opzichte van de kleinste omweg als de omweg zelf.
 
 ### D-8. Zoekgebieden langs een route
 
@@ -532,7 +533,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-5 Routering en adressen | D-6 | `routing.py`, `geo.py`; `test_all.py` |
 | FR-6 Resultaat en besparing | D-4 | `calc.py`, `web.serialize`; `test_web.py` |
 | FR-7 Prijscache | D-9, D-10 | `cache.py`; `test_cache.py` |
-| FR-8, FR-9 Langs een route | D-7, D-8 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |
+| FR-8, FR-9, FR-38 Langs een route | D-7, D-8 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |
 | FR-10 Bestemming op kaart | D-16 | `static/index.html`; handmatig en browsertest |
 | FR-11 Omdraaien | D-15 | `static/index.html` |
 | FR-12 Maximale afstand | D-24 | `calc.rank_along`, `routing._osrm_detours`, `service.export_data`; `test_route.py` |
