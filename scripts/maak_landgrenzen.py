@@ -1,4 +1,4 @@
-"""Maakt fuelfinder/data/landgrenzen.json: vereenvoudigde landgrenzen waarmee de app bepaalt in welk
+"""Maakt goedkooptanken/data/landgrenzen.json: vereenvoudigde landgrenzen waarmee de app bepaalt in welk
 land een station ligt.
 
 Gebruik (eenmalig, of als je een land toevoegt):
@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 TOLERANCE = 0.0003  # graden (ca. 30 m) bij het vereenvoudigen
-OUT = Path(__file__).resolve().parent.parent / "fuelfinder" / "data" / "landgrenzen.json"
+OUT = Path(__file__).resolve().parent.parent / "goedkooptanken" / "data" / "landgrenzen.json"
 
 
 def decode_arcs(topo):

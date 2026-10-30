@@ -9,10 +9,10 @@ import urllib.parse
 from pathlib import Path
 from unittest import mock
 
-from fuelfinder import calc, config, geo, service
-from fuelfinder import http as fhttp
-from fuelfinder.models import PETROL95, Station
-from fuelfinder.routing import Router
+from goedkooptanken import calc, config, geo, service
+from goedkooptanken import http as fhttp
+from goedkooptanken.models import PETROL95, Station
+from goedkooptanken.routing import Router
 from test_all import FakeNet, anwb_station
 
 A = (51.19, 5.99)     # Roermond

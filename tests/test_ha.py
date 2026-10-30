@@ -9,7 +9,7 @@ from pathlib import Path
 import tempfile
 from unittest import mock
 
-from fuelfinder import ha, web
+from goedkooptanken import ha, web
 from test_web import free_port
 
 STATES = [

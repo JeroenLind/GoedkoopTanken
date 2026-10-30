@@ -1,4 +1,4 @@
-"""Commandoregel: `python -m fuelfinder find | vehicle | check`."""
+"""Commandoregel: `python -m goedkooptanken find | vehicle | check`."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ def cmd_find(args, cfg) -> int:
     for name, msg in out.provider_messages.items():
         print(f"  bron {name}: {msg}")
     if out.notice:
-        print(f"\n{out.notice} Draai `python -m fuelfinder check` om de bronnen te testen.")
+        print(f"\n{out.notice} Draai `python -m goedkooptanken check` om de bronnen te testen.")
         return 1
 
     results = out.results

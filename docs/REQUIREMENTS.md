@@ -95,8 +95,9 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 
 | Nr. | Eis | Herkomst | Status |
 | --- | --- | --- | --- |
-| FR-35 | De app heet overal "Goedkoop tanken" waar de gebruiker haar ziet (tabbladtitel, kop, meldingen, export, documentatie), niet "fuelfinder". De technische naam van het pakket en het commando (`python -m fuelfinder web`) blijft voorlopig gelijk, zie O-7. | Jeroen | Klaar |
+| FR-35 | De app heet overal "Goedkoop tanken", niet "fuelfinder": in de interface (tabbladtitel, kop, meldingen), de export, de documentatie én technisch (pakket `goedkooptanken`, commando `python -m goedkooptanken web`, `GOEDKOOPTANKEN_CONTACT`, User-Agent). | Jeroen | Klaar |
 | FR-36 | Het pictogram is een groene afgeronde tegel met een witte brandstofdruppel en een pijl omlaag. De huisstijl is groen (#1D9E75, voor tekst en knoppen donkerder: #0F7A58), marineblauw (#1E3A5F) en oranje (#F28C28, alleen als accent). Het pictogram staat in de interface, als tabbladpictogram en als pictogram van de add-on. | Jeroen | Klaar |
+| FR-37 | Op een breed scherm staat de lijst met stations links en de kaart met het detail van het gekozen station rechts, zoals in de mockup; op een telefoon blijft het één kolom. | Jeroen | Klaar |
 
 ## 4. Niet-functionele eisen
 
@@ -104,7 +105,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 
 | Nr. | Eis | Herkomst | Status |
 | --- | --- | --- | --- |
-| NFR-1 | De app blijft lokaal te draaien op een laptop met `python -m fuelfinder web`, zonder Docker en zonder Home Assistant. | Jeroen | Klaar |
+| NFR-1 | De app blijft lokaal te draaien op een laptop met `python -m goedkooptanken web`, zonder Docker en zonder Home Assistant. | Jeroen | Klaar |
 | NFR-2 | De add-on heet "Goedkoop tanken" en draait op aarch64 en amd64. | Jeroen | Klaar |
 | NFR-3 | Eén publieke GitHub-repository bevat de code, de add-on en de bouwconfiguratie. | Jeroen | Klaar |
 | NFR-4 | De add-on wordt via GitHub gebouwd en verspreid als kant-en-klare images op GitHub Container Registry; gebruikers bouwen niet zelf. | Jeroen | Klaar |
@@ -151,7 +152,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | Toegang | Ingress, zijbalk in Home Assistant | Jeroen |
 | Images | Prebuilt op GHCR, aarch64 en amd64 | Jeroen |
 | Releases | Alleen via versie-tags; de eerste push levert geen release op | Jeroen |
-| Laptop | `python -m fuelfinder web` blijft werken | Jeroen |
+| Laptop | `python -m goedkooptanken web` blijft werken | Jeroen |
 | Naam in de app | Goedkoop tanken, overal waar de gebruiker het ziet (FR-35) | Jeroen |
 | Pictogram | Groene tegel met witte druppel en pijl omlaag (FR-36) | Jeroen |
 | Taal | Nederlands | Jeroen |
@@ -170,7 +171,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | O-3 | Contactadres voor de User-Agent naar OpenStreetMap-diensten (optionele add-on-optie `contact`). | Jeroen |
 | O-4 | Minimale Home Assistant-versie. | Te bepalen bij testen |
 | O-5 | Toegankelijkheid (NFR-8) nog niet getoetst met toetsenbord en schermlezer. | Te plannen |
-| O-7 | Ook de technische naam (map `fuelfinder/`, pakketnaam, commando `python -m fuelfinder web`, `FUELFINDER_CONTACT`, User-Agent) hernoemen naar Goedkoop tanken? Dat breekt het laptopcommando uit NFR-1. | Jeroen |
+| O-7 | ~~Technische naam ook hernoemen.~~ Besloten en doorgevoerd (FR-35): het laptopcommando uit NFR-1 is nu `python -m goedkooptanken web`. | Jeroen |
 | O-6 | **Risico: ANWB.** De ANWB-bron levert de Nederlandse en Belgische prijzen (FR-2, FR-29), maar is geen gedocumenteerde of officiële API en kan zonder waarschuwing wijzigen of verdwijnen. Bij uitval valt de app terug op oudere prijzen met een melding (FR-7, NFR-9). Een mogelijke vervanger voor NL en BE is de DirectLease TankService (genoemd door pyfuelprices); die is nog niet onderzocht. | Jeroen |
 
 ## 8. Herleidbaarheid

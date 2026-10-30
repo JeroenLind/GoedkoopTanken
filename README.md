@@ -1,7 +1,5 @@
 # Goedkoop tanken
 
-(Technische naam: `fuelfinder`; zo heet het pakket en het commando nog.)
-
 Zoekt het goedkoopste tankstation **inclusief de kosten van de omrit** (heen én terug naar huis),
 over de grens heen. Dit is een lokale testversie voor op je laptop; de logica is los van de
 interface gehouden, zodat er later een app, website of Home Assistant-koppeling op kan.
@@ -12,10 +10,10 @@ Vereist Python 3.11+. Geen pakketten installeren nodig.
 
 ```
 cp config.example.toml config.toml     # pas thuislocatie en kenteken aan
-python -m fuelfinder check             # test alle bronnen (doe dit eerst!)
-python -m fuelfinder vehicle AB-123-C  # wat weet de RDW over je auto?
-python -m fuelfinder find -v           # het eigenlijke zoeken
-python -m fuelfinder find --fuel diesel --consumption 5.5 --fill 50 --address "Straat 1, Plaats"
+python -m goedkooptanken check             # test alle bronnen (doe dit eerst!)
+python -m goedkooptanken vehicle AB-123-C  # wat weet de RDW over je auto?
+python -m goedkooptanken find -v           # het eigenlijke zoeken
+python -m goedkooptanken find --fuel diesel --consumption 5.5 --fill 50 --address "Straat 1, Plaats"
 ```
 
 Voor Duitse prijzen heb je een gratis key nodig van https://creativecommons.tankerkoenig.de
@@ -24,8 +22,8 @@ Voor Duitse prijzen heb je een gratis key nodig van https://creativecommons.tank
 ## Webinterface
 
 ```
-python -m fuelfinder web          # opent http://127.0.0.1:8080 in je browser
-python -m fuelfinder web --port 9000 --no-browser
+python -m goedkooptanken web          # opent http://127.0.0.1:8080 in je browser
+python -m goedkooptanken web --port 9000 --no-browser
 ```
 
 Op de hoofdpagina staan alleen **Huidige locatie**, **Liters tanken** en **Bereken**. De locatie wordt
@@ -49,9 +47,9 @@ van huis naar werk. In de webinterface kies je bovenaan *Langs een route*; het v
 heet dan Vertrek en er komt een veld Bestemming bij (met de keuzelijst **Vaste adressen** en de knop **Omdraaien**, handig
 voor de terugweg). Vaste adressen (Werk, school, familie, enz.) stel je in via het menu onder Vaste adressen; de naam Werk is de standaard. Een oud `[work]`-blok in config.toml wordt automatisch het adres Werk. Op de commandoregel:
 
-    python -m fuelfinder find --to werk
-    python -m fuelfinder find --to "Stationsstraat 1, Sittard" --address "Mijn straat 1, Roermond"
-    python -m fuelfinder find --to 51.25,5.71 --corridor 8
+    python -m goedkooptanken find --to werk
+    python -m goedkooptanken find --to "Stationsstraat 1, Sittard" --address "Mijn straat 1, Roermond"
+    python -m goedkooptanken find --to 51.25,5.71 --corridor 8
 
 Hoe het rekent:
 - De omweg is het verschil met de directe route: (vertrek, station, bestemming) min (vertrek, bestemming),
@@ -141,7 +139,7 @@ Afstanden zijn rijafstanden via OSRM; als OSRM niet bereikbaar is schat het prog
 
 De ontwikkelomgeving kon de externe diensten niet bereiken. Deze delen zijn gebouwd op
 documentatie en de broncode van de bibliotheek pyfuelprices, maar nog niet live geprobeerd.
-`python -m fuelfinder check` toont per bron of het werkt:
+`python -m goedkooptanken check` toont per bron of het werkt:
 
 - **RDW**: de veldnamen voor verbruik (`brandstofverbruik_gecombineerd(_wltp)`). `check` meldt ontbrekende velden; `vehicle <kenteken> --raw` toont het ruwe antwoord.
 - **ANWB Onderweg**: endpoint, responsvorm en brandstofcodes (`EURO95`, `DIESEL`, ...). Het endpoint is niet officieel gedocumenteerd en kan veranderen. `check` toont welke brandstoftypen er echt voorbijkomen.
@@ -149,7 +147,7 @@ documentatie en de broncode van de bibliotheek pyfuelprices, maar nog niet live 
 
 ## Nieuwe bron of grens toevoegen
 
-Maak `fuelfinder/providers/<naam>.py` met een `Provider`-klasse (methode `fetch(lat, lon, radius_km)`
+Maak `goedkooptanken/providers/<naam>.py` met een `Provider`-klasse (methode `fetch(lat, lon, radius_km)`
 die `Station`-objecten teruggeeft), registreer hem in `PROVIDER_CLASSES` in `providers/__init__.py`. Naam, label, landen, toelichting en
 testpunt staan als eigenschappen in de klasse; het menu (Bronnen en Landen) toont de bron dan vanzelf bij elk
 land dat hij dekt. Een nieuw land komt in `countries.COUNTRIES` (grenzen maken met `scripts/maak_landgrenzen.py`).
@@ -162,7 +160,7 @@ De rekenkern verandert niet.
 ## Home Assistant-add-on
 
 De map `goedkoop-tanken/` is de add-on (Ingress in de zijbalk, instellingen in `/data`). Dezelfde code
-draait nog steeds op je laptop met `python -m fuelfinder web`.
+draait nog steeds op je laptop met `python -m goedkooptanken web`.
 
 - Vervang `GITHUB_GEBRUIKER` in `repository.yaml`, `goedkoop-tanken/config.yaml` en `goedkoop-tanken/Dockerfile`.
 - Lokaal testen op je Pi zonder GHCR: `scripts/lokale-addon.sh <map>`, kopieer de map naar `/addons/goedkoop-tanken`

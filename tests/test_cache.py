@@ -7,13 +7,13 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from fuelfinder import cache as cachemod
-from fuelfinder import config, service, web
-from fuelfinder import http as fhttp
-from fuelfinder.cache import FetchInfo, StationCache, fetch_cached, plan_fetch
-from fuelfinder.geo import haversine_km
-from fuelfinder.models import PETROL95, Station
-from fuelfinder.providers.base import Provider
+from goedkooptanken import cache as cachemod
+from goedkooptanken import config, service, web
+from goedkooptanken import http as fhttp
+from goedkooptanken.cache import FetchInfo, StationCache, fetch_cached, plan_fetch
+from goedkooptanken.geo import haversine_km
+from goedkooptanken.models import PETROL95, Station
+from goedkooptanken.providers.base import Provider
 from test_all import FakeNet, anwb_station
 
 HOME = (51.19, 5.99)

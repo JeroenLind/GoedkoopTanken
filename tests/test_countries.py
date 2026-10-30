@@ -4,11 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from fuelfinder import config, countries, service
-from fuelfinder.models import PETROL95, Station
-from fuelfinder.providers import (PROVIDER_CLASSES, build_providers, catalog, clean_countries, collect_areas,
+from goedkooptanken import config, countries, service
+from goedkooptanken.models import PETROL95, Station
+from goedkooptanken.providers import (PROVIDER_CLASSES, build_providers, catalog, clean_countries, collect_areas,
                                   default_countries, enabled_map)
-from fuelfinder.providers.base import Provider
+from goedkooptanken.providers.base import Provider
 
 NL = (51.19, 5.99)    # Roermond
 DE = (51.79, 6.14)    # Kleve

@@ -4,7 +4,7 @@ FROM ghcr.io/home-assistant/base:latest
 RUN apk add --no-cache python3
 
 WORKDIR /app
-COPY fuelfinder /app/fuelfinder
+COPY goedkooptanken /app/goedkooptanken
 COPY goedkoop-tanken/rootfs /
 RUN chmod a+x /etc/services.d/goedkoop-tanken/run /etc/services.d/goedkoop-tanken/finish
 
