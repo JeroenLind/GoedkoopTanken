@@ -49,6 +49,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-11 | Vertrek en bestemming kunnen worden omgedraaid (voor de terugweg). | Jeroen | Klaar |
 | FR-12 | Bij een route kan de gebruiker een maximaal te rijden afstand invullen (rijafstand van het vertrek naar het station), voor het geval de tank bijna leeg is. Stations die verder weg liggen vallen af. | Jeroen | Klaar |
 | FR-38 | Bij zoeken langs een route is de snelste route van vertrek naar bestemming de referentie voor alle extra kilometers en minuten (issue #2); een kortste-routeoptie komt er niet. Het detailpaneel toont zowel de besparing ten opzichte van het station met de kleinste omweg als de omweg (km en minuten) ten opzichte van de snelste route; in de tabel komt geen extra kolom (nog te beoordelen na gebruik). Verkeer valt hier buiten (issue #1). | Jeroen | Klaar |
+| FR-39 | De actuele verkeerssituatie telt mee in beide modi (rond een locatie en langs een route; issue #1). De vertraging door verkeer staat apart naast de minuten, bijvoorbeeld "14 min (+5 min file)", in het detailpaneel en in de export. Zonder sleutel, of als de verkeersdienst uitvalt, rekent de app met OSRM zonder verkeer en toont daarbij een melding: verkeer is optioneel. De keuze van de dienst is aan Claude (voorstel: O-8). | Jeroen | Gepland |
 
 ### 3.3 Vaste adressen
 
@@ -173,6 +174,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | O-4 | Minimale Home Assistant-versie. | Te bepalen bij testen |
 | O-5 | Toegankelijkheid (NFR-8) nog niet getoetst met toetsenbord en schermlezer. | Te plannen |
 | O-7 | ~~Technische naam ook hernoemen.~~ Besloten en doorgevoerd (FR-35): het laptopcommando uit NFR-1 is nu `python -m goedkooptanken web`. | Jeroen |
+| O-8 | Verkeersdienst voor FR-39. Voorstel: TomTom Routing API (Calculate Route met `traffic=live`; antwoord geeft `trafficDelayDurationInSeconds`; volgens de prijspagina 20.000 aanvragen per maand gratis zonder creditcard). Nog te bevestigen: de gebruiksvoorwaarden voor een persoonlijke add-on en welk aantal aanvragen per berekening acceptabel is. Nog geen code. | Jeroen |
 | O-6 | **Risico: ANWB.** De ANWB-bron levert de Nederlandse en Belgische prijzen (FR-2, FR-29), maar is geen gedocumenteerde of officiële API en kan zonder waarschuwing wijzigen of verdwijnen. Bij uitval valt de app terug op oudere prijzen met een melding (FR-7, NFR-9). Een mogelijke vervanger voor NL en BE is de DirectLease TankService (genoemd door pyfuelprices); die is nog niet onderzocht. | Jeroen |
 
 ## 8. Herleidbaarheid
