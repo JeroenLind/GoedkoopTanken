@@ -189,6 +189,21 @@ class RouteServiceTests(unittest.TestCase):
         with self.assertRaises(service.SearchError):
             service.search(self.cfg, service.SearchParams(route=True, dest_lat=A[0], dest_lon=A[1] + 12))
 
+    def test_reference_is_the_fastest_route_and_all_extras_are_relative_to_it(self):
+        out = self.go()
+        direct = geo.haversine_km(*A, *B) * 1.2   # snelste route in de nep-OSRM
+        self.assertAlmostEqual(out.route_km, direct, places=2)
+        self.assertAlmostEqual(out.route_min, direct / 60 * 60, delta=0.5)
+        for r in out.results:
+            s = r.station
+            via = (geo.haversine_km(*A, s.lat, s.lon) + geo.haversine_km(s.lat, s.lon, *B)) * 1.2
+            self.assertAlmostEqual(out.route_km + r.km_round_trip, via, places=2)   # referentie + omweg = via station
+            self.assertEqual(r.km_back, 0.0)
+
+    def test_around_search_has_no_reference_route(self):
+        out = service.search(self.cfg)
+        self.assertIsNone(service.export_data(out)["query"]["reference_route"])
+
     def test_around_mode_unchanged(self):
         out = service.search(self.cfg)
         self.assertEqual((out.mode, out.dest), ("around", None))

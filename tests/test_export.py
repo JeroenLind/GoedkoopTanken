@@ -62,6 +62,8 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(data["counts"]["stations_seen"], 4)
         self.assertEqual(data["query"]["mode"], "route")
         self.assertGreater(len(data["route"]["line"]), 1)
+        self.assertEqual(data["query"]["reference_route"], "fastest")
+        self.assertEqual(data["route"]["type"], "fastest")
         self.assertGreaterEqual(len(data["query"]["searched_areas"]), 2)
 
     def test_export_result_numbers_match_the_screen(self):

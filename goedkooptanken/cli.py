@@ -38,7 +38,7 @@ def cmd_find(args, cfg) -> int:
     print(f"{'Vertrek:  ' if route else 'Thuis:    '}  {out.home_label}")
     if route:
         print(f"Bestemming:  {out.dest_label}")
-        print(f"Route:       {eur(out.route_km, 1)} km, {out.route_min:.0f} min direct; "
+        print(f"Snelste route: {eur(out.route_km, 1)} km, {out.route_min:.0f} min (referentie voor de omweg); "
               f"zoeken tot {eur(out.corridor_km, 0)} km naast de route")
     if veh:
         print(f"Auto:       {veh.plate} {veh.description}".rstrip())

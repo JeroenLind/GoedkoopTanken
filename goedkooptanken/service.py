@@ -376,7 +376,8 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
         "generated_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
         "program": "Goedkoop tanken",
         "query": {
-            "mode": out.mode, "start": {"lat": out.home[0], "lon": out.home[1], "label": out.home_label},
+            "mode": out.mode, "reference_route": "fastest" if route else None,
+            "start": {"lat": out.home[0], "lon": out.home[1], "label": out.home_label},
             "destination": ({"lat": out.dest[0], "lon": out.dest[1], "label": out.dest_label} if out.dest else None),
             "fuel": out.fuel, "fill_liters": out.fill_liters,
             "consumption_l_per_100km": {"official": out.official_consumption, "used": out.real_consumption,
@@ -392,7 +393,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
                            "age_min": round(out.sources[name].age_s / 60) if name in out.sources else None}
                     for name, msg in out.provider_messages.items()},
         "warnings": out.warnings, "notice": out.notice,
-        "route": ({"km": round(out.route_km, 2), "min": round(out.route_min, 1),
+        "route": ({"type": "fastest", "km": round(out.route_km, 2), "min": round(out.route_min, 1),
                    "line": [[round(a, 5), round(b, 5)] for a, b in out.route_line]} if route else None),
         "counts": {"stations_seen": len(out.stations), "duplicates_dropped": len(out.dropped),
                    "routed": len(out.ranked), "in_results": len(out.results),

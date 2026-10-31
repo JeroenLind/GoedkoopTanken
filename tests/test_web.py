@@ -195,6 +195,7 @@ class WebTests(unittest.TestCase):
         self.assertEqual(status, 200, data)
         self.assertEqual((data["mode"], data["dest"]["lat"]), ("route", 52.0))
         self.assertGreater(data["route"]["km"], 10)
+        self.assertEqual(data["route"]["type"], "fastest")   # referentie voor de omweg
         self.assertEqual(data["corridor_km"], 10.0)   # geen tijdlimiet in SEARCH
         rows = data["results"]
         base = next(r for r in rows if r["is_baseline"])

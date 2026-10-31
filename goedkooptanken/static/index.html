@@ -1149,6 +1149,13 @@ function showDetail(d, r) {         // de volledige berekening van één station
   } else {
     rows.push(row("Besparing", `${eur(base.total)} (${base.name}, ${route ? "kleinste omweg" : "dichtstbijzijnde"}) − ${eur(r.total)}`, eur(r.saving)));
   }
+  if (route && d.route) {           // de omweg afgezet tegen de referentieroute (snelste route)
+    const viaKm = d.route.km + r.km_exact, viaMin = d.route.min + r.minutes;
+    rows.push(row("Omweg t.o.v. snelste route",
+      `Snelste route ${nl(d.route.km, 1)} km, ${d.route.min} min. Via dit station ${nl(viaKm, 1)} km, ${viaMin} min: ` +
+      `${nl(r.km_exact, 2)} km en ${r.minutes} min extra${est}`,
+      `+${nl(r.km_exact, 1)} km`));
+  }
   const extra = route ? r.minutes : r.extra_min;
   rows.push(row(route ? "Omweg in tijd" : "Rijtijd",
     route ? `${r.minutes} min en ${nl(r.km_exact, 2)} km extra ten opzichte van de snelste route${est}`
@@ -1178,7 +1185,7 @@ async function drawVia(d, r) {
   if (!resmap.getBounds().contains(vb)) resmap.fitBounds(vb.pad(0.15), { maxZoom: 14 });
   const est = v.estimated ? " (geschat, rechte lijnen)" : "";
   note.textContent = d.mode === "route"
-    ? `Via ${r.name}: ${nl(v.km, 1)} km, ${v.min} min, tegenover ${nl(d.route.km, 1)} km, ${d.route.min} min direct${est}.`
+    ? `Via ${r.name}: ${nl(v.km, 1)} km, ${v.min} min, tegenover ${nl(d.route.km, 1)} km, ${d.route.min} min op de snelste route${est}.`
     : `Rit heen en terug naar ${r.name}: ${nl(v.km, 1)} km, ${v.min} min${est}.`;
 }
 
@@ -1234,7 +1241,7 @@ function render(d) {
   main.append(h("ul", { class: "context" },
     h("li", null, "Vertrek: ", h("b", null, short(d.home.label))),
     route && h("li", null, "Bestemming: ", h("b", null, short(d.dest.label))),
-    route && h("li", null, "Route: ", h("b", null, `${nl(d.route.km, 0)} km, ${d.route.min} min`), d.any_estimated ? " (geschat)" : ""),
+    route && h("li", null, "Snelste route: ", h("b", null, `${nl(d.route.km, 0)} km, ${d.route.min} min`), d.any_estimated ? " (geschat)" : ""),
     car && h("li", null, "Auto: ", h("b", null, car)),
     h("li", null, "Brandstof: ", h("b", null, d.fuel_label)),
     h("li", null, "Verbruik: ", h("b", null, `${nl(c.real, 1)} l/100 km`), ` (${how})`),
