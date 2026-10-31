@@ -387,7 +387,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Keuze:** `omweg = (A naar station) + (station naar B) − (A naar B)`, uit twee tabelaanvragen (alles vanaf A, alles naar B). Het resultaat hergebruikt het bestaande `Result`: `km_out` is de extra afstand, `km_back` is 0.
 - **Reden:** de hele rangschikking, besparing en weergave werkt dan voor beide modi zonder aparte code. Twee aanvragen dekken alle kandidaten.
 - **Afgewezen:** per station een volledige route opvragen (veel aanvragen); een apart resultaattype voor routes (dubbele code in kern en UI).
-- **Referentieroute (FR-38, issue #2, besluit door Jeroen):** `A naar B` is de snelste route, want OSRM rekent met de snelste weg; die geldt voor alle extra kilometers en minuten. Een kortste-routeoptie is bewust niet gebouwd. De interface noemt het "snelste route" en toont in het detailpaneel zowel de besparing ten opzichte van de kleinste omweg als de omweg zelf.
+- **Referentieroute (FR-38, issue #2, besluit door Jeroen):** `A naar B` is de snelste route, want OSRM rekent met de snelste weg; die geldt voor alle extra kilometers en minuten. Een kortste-routeoptie is bewust niet gebouwd. De interface noemt het "snelste route" en toont in het detailpaneel zowel de besparing ten opzichte van de kleinste omweg als de omweg zelf, naast de lengte en rijtijd van de snelste route en van de route via het station. Export en API zetten `reference_route` en `route.type` op `fastest` (alleen bij zoeken langs een route); de CLI noemt de snelste route als referentie.
 
 ### D-8. Zoekgebieden langs een route
 
