@@ -92,7 +92,7 @@ def rank_along(
 ) -> list[Result]:
     """Zoals `rank`, maar voor een rit van `start` naar `end` met tanken onderweg.
 
-    De omrit is het verschil met de directe route: (start -> station -> eind) min (start -> eind).
+    De omrit is het verschil met de snelste route: (start -> station -> eind) min (start -> eind).
     `km_out` en `min_out` van elk resultaat zijn dus de extra kilometers en minuten. De referentie
     (`is_baseline`) is het station met de kleinste omweg. Alleen stations binnen `corridor_km`
     hemelsbreed van de route doen mee.

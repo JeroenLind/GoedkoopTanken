@@ -16,7 +16,7 @@ redenen en afgewezen alternatieven.
 - Eén kern met alle logica, los van de interface. De commandoregel, de webinterface en de add-on gebruiken dezelfde kern.
 - Alleen de Python-standaardbibliotheek (Python 3.11 of nieuwer); geen pakketten om te installeren.
 - Eén webpagina zonder bouwstap, met meegeleverde kaartbibliotheek (Leaflet).
-- Dezelfde code draait op de laptop (`python -m fuelfinder web`) en in Home Assistant achter Ingress.
+- Dezelfde code draait op de laptop (`python -m goedkooptanken web`) en in Home Assistant achter Ingress.
 
 ## 2. Architectuur
 
@@ -67,21 +67,22 @@ De pijlen gaan van boven naar beneden: de kern kent de interfaces niet. De kaart
 
 | Pad | Verantwoordelijkheid |
 | --- | --- |
-| `fuelfinder/service.py` | `search()`: de hele zoekopdracht in één functie; `export_data()`, `test_source()`; bepaalt de zoekgebieden langs een route |
-| `fuelfinder/calc.py` | Kosten per station (`rank`, `rank_along`), voorselectie, referentiestation, tijdlimiet |
-| `fuelfinder/routing.py` | `Router`: rijafstand en rijtijd via OSRM, met terugval op een schatting |
-| `fuelfinder/providers/` | Prijsbronnen: `base.py` (contract), `anwb.py`, `tankerkoenig.py`, `__init__.py` (register, samenvoegen, ontdubbelen) |
-| `fuelfinder/cache.py` | Cache per gebied met raster, houdbaarheid en terugval op oude gegevens |
-| `fuelfinder/vehicle.py` | Kenteken naar brandstof en verbruik via RDW open data |
-| `fuelfinder/geo.py` | Afstanden, adres opzoeken en omgekeerd (Nominatim, met snelheidslimiet), punten langs een lijn |
-| `fuelfinder/config.py` | `Config`, laden en opslaan van TOML, validatie, vaste adressen |
-| `fuelfinder/http.py` | Eén HTTP-functie voor alles (`fetch_json`), met herpogingen en een snelle testmodus |
-| `fuelfinder/ha.py` | Alleen-lezen koppeling met Home Assistant (trackerlijst en trackerlocatie) |
-| `fuelfinder/web.py` | `App` (acties, testbaar zonder HTTP), `serialize()`, en de HTTP-handler met beveiliging |
-| `fuelfinder/cli.py` | Commando's `find`, `stations`, `vehicle`, `check`, `cache`, `web` |
-| `fuelfinder/models.py` | `Station`, `Vehicle`, `Result`, brandstofnamen |
-| `fuelfinder/static/index.html` | De hele webinterface (HTML, CSS en JavaScript in één bestand) |
-| `fuelfinder/static/vendor/leaflet/` | Meegeleverde kaartbibliotheek (Leaflet 1.9.4) |
+| `goedkooptanken/service.py` | `search()`: de hele zoekopdracht in één functie; `export_data()`, `test_source()`; bepaalt de zoekgebieden langs een route |
+| `goedkooptanken/calc.py` | Kosten per station (`rank`, `rank_along`), voorselectie, referentiestation, tijdlimiet |
+| `goedkooptanken/routing.py` | `Router`: rijafstand en rijtijd via OSRM, met terugval op een schatting |
+| `goedkooptanken/providers/` | Prijsbronnen: `base.py` (contract), `anwb.py`, `tankerkoenig.py`, `__init__.py` (register, samenvoegen, ontdubbelen) |
+| `goedkooptanken/cache.py` | Cache per gebied met raster, houdbaarheid en terugval op oude gegevens |
+| `goedkooptanken/vehicle.py` | Kenteken naar brandstof en verbruik via RDW open data |
+| `goedkooptanken/geo.py` | Afstanden, adres opzoeken en omgekeerd (Nominatim, met snelheidslimiet), punten langs een lijn |
+| `goedkooptanken/config.py` | `Config`, laden en opslaan van TOML, validatie, vaste adressen |
+| `goedkooptanken/http.py` | Eén HTTP-functie voor alles (`fetch_json`), met herpogingen en een snelle testmodus |
+| `goedkooptanken/ha.py` | Alleen-lezen koppeling met Home Assistant (trackerlijst en trackerlocatie) |
+| `goedkooptanken/web.py` | `App` (acties, testbaar zonder HTTP), `serialize()`, en de HTTP-handler met beveiliging |
+| `goedkooptanken/cli.py` | Commando's `find`, `stations`, `vehicle`, `check`, `cache`, `web` |
+| `goedkooptanken/models.py` | `Station`, `Vehicle`, `Result`, brandstofnamen |
+| `goedkooptanken/static/index.html` | De hele webinterface (HTML, CSS en JavaScript in één bestand) |
+| `goedkooptanken/static/icon.svg` | Pictogram van de app (kop, tabblad); `goedkoop-tanken/icon.png` en `logo.png` zijn dezelfde tekening voor Home Assistant |
+| `goedkooptanken/static/vendor/leaflet/` | Meegeleverde kaartbibliotheek (Leaflet 1.9.4) |
 | `goedkoop-tanken/` | Home Assistant-add-on: `config.yaml`, `Dockerfile`, startscripts, documentatie, vertaling |
 | `repository.yaml` | Maakt de repository herkenbaar als add-on-opslagplaats |
 | `.github/workflows/` | `ci.yaml` (testen en testbouw), `release.yaml` (bouwen en publiceren bij een tag) |
@@ -299,14 +300,14 @@ flowchart TD
 
 | | Laptop | Home Assistant-add-on |
 | --- | --- | --- |
-| Start | `python -m fuelfinder web` | s6-service `goedkoop-tanken` in de container |
+| Start | `python -m goedkooptanken web` | s6-service `goedkoop-tanken` in de container |
 | Adres | `127.0.0.1:8080`, opent de browser | `0.0.0.0:8099`, alleen via Ingress |
 | Instellingen | `config.toml` in de map | `/data/config.toml` (blijft bij updates) |
 | Cache | `cache/` naast `config.toml` | `/data/cache/` |
 | Locatie | Browser | HA-tracker, met de browser als reserve |
 | Beveiliging | Host- en Origin-controle | Alleen de Supervisor |
 
-**Container.** Het `Dockerfile` begint bij `ghcr.io/home-assistant/base`, installeert Python via `apk` en kopieert de map `fuelfinder/` plus de startscripts. De bouwcontext is de hoofdmap van de repository. Het startscript (`#!/command/with-contenv bashio`) leest de optie `contact`, zet `FUELFINDER_CONTACT` voor de User-Agent en start de webserver met `--host 0.0.0.0 --port 8099 --data-dir /data --ingress --no-browser`.
+**Container.** Het `Dockerfile` begint bij `ghcr.io/home-assistant/base`, installeert Python via `apk` en kopieert de map `goedkooptanken/` plus de startscripts. De bouwcontext is de hoofdmap van de repository. Het startscript (`#!/command/with-contenv bashio`) leest de optie `contact`, zet `GOEDKOOPTANKEN_CONTACT` voor de User-Agent en start de webserver met `--host 0.0.0.0 --port 8099 --data-dir /data --ingress --no-browser`.
 
 **Ingress en paden.** Home Assistant serveert de pagina onder een pad als `/api/hassio_ingress/<token>/`. Daarom gebruikt de pagina alleen relatieve URL's (`api/...`, `vendor/...`).
 
@@ -386,6 +387,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Keuze:** `omweg = (A naar station) + (station naar B) − (A naar B)`, uit twee tabelaanvragen (alles vanaf A, alles naar B). Het resultaat hergebruikt het bestaande `Result`: `km_out` is de extra afstand, `km_back` is 0.
 - **Reden:** de hele rangschikking, besparing en weergave werkt dan voor beide modi zonder aparte code. Twee aanvragen dekken alle kandidaten.
 - **Afgewezen:** per station een volledige route opvragen (veel aanvragen); een apart resultaattype voor routes (dubbele code in kern en UI).
+- **Referentieroute (FR-38, issue #2, besluit door Jeroen):** `A naar B` is de snelste route, want OSRM rekent met de snelste weg; die geldt voor alle extra kilometers en minuten. Een kortste-routeoptie is bewust niet gebouwd. De interface noemt het "snelste route" en toont in het detailpaneel zowel de besparing ten opzichte van de kleinste omweg als de omweg zelf.
 
 ### D-8. Zoekgebieden langs een route
 
@@ -480,7 +482,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 ### D-21. Add-on-verpakking met de repo-hoofdmap als bouwcontext
 
 - **Besluit door:** Jeroen (één repo, GHCR, Ingress), Claude (verpakking). **Eisen:** NFR-2, NFR-3, NFR-4, FR-27.
-- **Keuze:** `Dockerfile` in `goedkoop-tanken/`, maar de bouwcontext is de hoofdmap, zodat `fuelfinder/` rechtstreeks wordt meegenomen. Een script maakt een map voor lokaal testen.
+- **Keuze:** `Dockerfile` in `goedkoop-tanken/`, maar de bouwcontext is de hoofdmap, zodat `goedkooptanken/` rechtstreeks wordt meegenomen. Een script maakt een map voor lokaal testen.
 - **Reden:** de code staat maar op één plek. Het oude `build.yaml` is verouderd; labels en argumenten staan nu in het `Dockerfile`.
 - **Afgewezen:** de code kopiëren naar de add-on-map (dubbele code die uit de pas loopt); de add-on bij elke installatie op de Pi bouwen (Jeroen koos kant-en-klare images).
 
@@ -512,6 +514,14 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Reden:** ANWB levert drie landen, Tankerkönig er één; alleen per land aan of uit zetten past daarbij. Een nieuwe bron of een nieuw land vraagt zo geen aanpassing van de interface.
 - **Afgewezen:** één lijst aan/uit voor alle landen (te grof); het land uit de bron zelf halen (niet elke bron levert het); de oude instelling omzetten (Jeroen: mag vervallen, de standaard geldt).
 
+### D-26. Naam en huisstijl
+
+- **Besluit door:** Jeroen (naam en pictogram), Claude (hoe het is doorgevoerd). **Eisen:** FR-35, FR-36, FR-37.
+- **Keuze:** de naam "Goedkoop tanken" staat in alles wat de gebruiker ziet. Het pictogram is één SVG (`static/icon.svg`), door `web.py` onder een vaste naam aangeboden (`/icon.svg`, ook als `/favicon.ico`); voor Home Assistant staat dezelfde tekening als `icon.png` (128 px) en `logo.png` (512 px) in `goedkoop-tanken/`. De kleuren zitten als variabelen bovenaan `index.html` (`--brand` groen, `--ink` marineblauw, `--accent` oranje, ook voor donkere modus). De winnaar krijgt groen; oranje is alleen het accent op de kaartspeld. 
+- **Reden:** Jeroen wil overal "Goedkoop tanken" en koos dit pictogram. Voor wit op groen is een donkerder groen (#0F7A58) nodig dan de tegel (#1D9E75) om genoeg contrast te houden (NFR-8).
+- **Afgewezen / uitgesteld:** een webfont (Nunito) zoals in het ontwerp: dat vraagt een externe aanvraag en de Content-Security-Policy staat die niet toe (D-14), dus de interface gebruikt de systeemletter. Een hernoeming alleen aan de buitenkant: Jeroen wilde de naam "overal", dus ook het pakket (`goedkooptanken`, zonder streepje omdat Python dat niet toestaat) en het commando zijn hernoemd. De oude naam `fuelfinder` werkt niet meer; er is geen overgangsalias gemaakt (niet besproken).
+- **Indeling:** vanaf 1200 px breed zet CSS de resultaten in twee kolommen: de lijst links en een rechterkolom (`.side`: kaart, kaartnotitie, detail) die blijft staan bij het scrollen; de pagina is dan maximaal 1440 px breed zodat de tabel niet zijwaarts hoeft te scrollen. Daaronder (en op de telefoon, D-18) blijft de volgorde zoals eerst. Alleen CSS en één omhullende `div`; geen nieuwe bouwstap (D-15).
+
 ## 9. Traceerbaarheid: eisen naar ontwerp
 
 | Eis | Ontwerpkeuze | Modules en tests |
@@ -523,7 +533,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-5 Routering en adressen | D-6 | `routing.py`, `geo.py`; `test_all.py` |
 | FR-6 Resultaat en besparing | D-4 | `calc.py`, `web.serialize`; `test_web.py` |
 | FR-7 Prijscache | D-9, D-10 | `cache.py`; `test_cache.py` |
-| FR-8, FR-9 Langs een route | D-7, D-8 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |
+| FR-8, FR-9, FR-38 Langs een route | D-7, D-8 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |
 | FR-10 Bestemming op kaart | D-16 | `static/index.html`; handmatig en browsertest |
 | FR-11 Omdraaien | D-15 | `static/index.html` |
 | FR-12 Maximale afstand | D-24 | `calc.rank_along`, `routing._osrm_detours`, `service.export_data`; `test_route.py` |
@@ -541,6 +551,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-28 Alleen de web-UI in v1 | Beperking van de scope | |
 | FR-30 t/m FR-34 Bronnen en landen | D-25 | `providers/__init__.py` (`PROVIDER_CLASSES`, `catalog`, `clean_countries`, `collect_areas`), `countries.py`, `config.py`, `static/index.html`; `test_countries.py` |
 | FR-29 België | D-3 (ANWB levert ook Belgische stations; geen codewijziging nodig) | `providers/anwb.py`; `test_all.py` (`test_anwb_returns_belgian_station_near_the_border`) |
+| FR-35, FR-36, FR-37 Naam, huisstijl en indeling | D-26 | `static/index.html`, `static/icon.svg`, `web.py`, `goedkoop-tanken/icon.png`; `test_web.py`, `check_addon.py` |
 | NFR-1 Laptop | D-1, D-14 | `cli.py`, `web.py` |
 | NFR-2 tot NFR-4 Platform en images | D-21, D-22 | `goedkoop-tanken/`, `.github/workflows/` |
 | NFR-5 Release via tag | D-22 | `release.yaml`, `scripts/check_addon.py` |

@@ -28,9 +28,11 @@ STATIC = Path(__file__).parent / "static"
 # Meegeleverde bestanden (Leaflet voor de kaart). Alleen wat hier bij het starten in de map staat
 # kan worden opgevraagd, op exact deze namen: er is geen pad om uit de map te ontsnappen.
 CONTENT_TYPES = {".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
-                 ".png": "image/png", ".txt": "text/plain; charset=utf-8"}
+                 ".png": "image/png", ".svg": "image/svg+xml", ".txt": "text/plain; charset=utf-8"}
 VENDOR = {p.relative_to(STATIC).as_posix(): p for p in (STATIC / "vendor").rglob("*")
           if p.is_file() and p.suffix in CONTENT_TYPES}
+# Het pictogram van de app (tabbladpictogram en kop); een vaste naam, geen pad uit de aanvraag.
+ICON = STATIC / "icon.svg"
 MAX_BODY = 100_000
 
 
@@ -220,7 +222,7 @@ def make_handler(app: App, port: int, ingress: bool = False):
     allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}", f"[::1]:{port}"}
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "fuelfinder"
+        server_version = "goedkoop-tanken"
 
         # -- helpers
         def _send(self, status: int, payload, content_type="application/json; charset=utf-8", headers=None):
@@ -292,6 +294,8 @@ def make_handler(app: App, port: int, ingress: bool = False):
             query = urllib.parse.parse_qs(url.query)
             if url.path in ("/", "/index.html"):
                 return self._send(200, (STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
+            if url.path in ("/icon.svg", "/favicon.ico"):
+                return self._send(200, ICON.read_bytes(), CONTENT_TYPES[".svg"])
             if url.path.lstrip("/") in VENDOR:
                 file = VENDOR[url.path.lstrip("/")]
                 return self._send(200, file.read_bytes(), CONTENT_TYPES[file.suffix])
@@ -304,7 +308,7 @@ def make_handler(app: App, port: int, ingress: bool = False):
                     data = app.export()
                 except ValueError as e:
                     return self._error(404, str(e))
-                name = "fuelfinder-data-" + data["generated_at"][:16].replace(":", "").replace("-", "").replace("T", "-") + ".json"
+                name = "goedkoop-tanken-data-" + data["generated_at"][:16].replace(":", "").replace("-", "").replace("T", "-") + ".json"
                 return self._send(200, json.dumps(data, ensure_ascii=False, indent=1).encode("utf-8"),
                                   headers={"Content-Disposition": f'attachment; filename="{name}"'})
             if url.path == "/api/ha/trackers":
@@ -349,7 +353,7 @@ def serve(config_path: str = "config.toml", port: int = 8080, open_browser: bool
     app = App(config_path)
     server = ThreadingHTTPServer((host, port), make_handler(app, port, ingress))
     url = f"http://127.0.0.1:{port}/"
-    print(f"fuelfinder draait op {url}  (stoppen met Ctrl+C)")
+    print(f"Goedkoop tanken draait op {url}  (stoppen met Ctrl+C)")
     print(f"Instellingen worden opgeslagen in {Path(config_path).resolve()}")
     if open_browser:
         threading.Timer(0.5, lambda: webbrowser.open(url)).start()

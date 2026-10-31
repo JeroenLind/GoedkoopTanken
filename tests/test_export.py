@@ -5,11 +5,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from fuelfinder import config, service
-from fuelfinder import http as fhttp
-from fuelfinder.models import PETROL95, Station
-from fuelfinder.providers import SOURCE_LABELS, collect_areas
-from fuelfinder.providers.base import Provider
+from goedkooptanken import config, service
+from goedkooptanken import http as fhttp
+from goedkooptanken.models import PETROL95, Station
+from goedkooptanken.providers import SOURCE_LABELS, collect_areas
+from goedkooptanken.providers.base import Provider
 from test_all import anwb_station
 from test_route import A, B, RouteNet, off_route
 
@@ -131,7 +131,7 @@ class ExportTests(unittest.TestCase):
         self.assertIn("dubbel: Shell A (ANWB Onderweg)", dup["status"])
 
     def test_path_via_a_station_uses_all_waypoints(self):
-        from fuelfinder.routing import Router
+        from goedkooptanken.routing import Router
         with mock.patch.object(fhttp, "fetch_json", self.net):
             via = Router("https://osrm.example").path([A, (A[0] + 0.05, 6.2), B], overview="full")
         self.assertFalse(via.estimated)

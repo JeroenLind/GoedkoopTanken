@@ -14,13 +14,13 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-USER_AGENT = "fuelfinder/0.1 (open source; https://github.com/)"
+USER_AGENT = "goedkooptanken/0.1 (open source; https://github.com/)"
 
 
 def user_agent() -> str:
-    """Herkenbare User-Agent. Met FUELFINDER_CONTACT (bijv. een e-mailadres) kunnen beheerders van
+    """Herkenbare User-Agent. Met GOEDKOOPTANKEN_CONTACT (bijv. een e-mailadres) kunnen beheerders van
     gedeelde diensten (Nominatim, OSRM) je bereiken als er iets misgaat."""
-    contact = os.environ.get("FUELFINDER_CONTACT", "").strip()
+    contact = os.environ.get("GOEDKOOPTANKEN_CONTACT", "").strip()
     return f"{USER_AGENT[:-1]}; {contact})" if contact else USER_AGENT
 TIMEOUT = 20
 

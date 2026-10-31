@@ -35,6 +35,9 @@ def main() -> int:
             errors.append(f"{rel} ontbreekt")
         elif not p.read_text(encoding="utf-8").startswith("#!/command/with-contenv bashio"):
             errors.append(f"{rel} moet beginnen met #!/command/with-contenv bashio")
+    for rel in ("icon.png", "logo.png"):
+        if not (ADDON / rel).exists():
+            errors.append(f"{rel} ontbreekt (pictogram en logo van de add-on)")
     if f"## {cfg.get('version')}" not in (ADDON / "CHANGELOG.md").read_text(encoding="utf-8"):
         errors.append("CHANGELOG.md heeft geen kop voor deze versie")
     for e in errors:

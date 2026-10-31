@@ -5,14 +5,14 @@ import unittest
 from contextlib import redirect_stdout
 from unittest import mock
 
-from fuelfinder import calc, cli, http, vehicle
-from fuelfinder.config import Config
-from fuelfinder.geo import bounding_box, haversine_km
-from fuelfinder.models import DIESEL, PETROL95, Station
-from fuelfinder.providers import build_providers, collect
-from fuelfinder.providers.anwb import AnwbProvider
-from fuelfinder.providers.tankerkoenig import TankerkoenigProvider
-from fuelfinder.routing import Router
+from goedkooptanken import calc, cli, http, vehicle
+from goedkooptanken.config import Config
+from goedkooptanken.geo import bounding_box, haversine_km
+from goedkooptanken.models import DIESEL, PETROL95, Station
+from goedkooptanken.providers import build_providers, collect
+from goedkooptanken.providers.anwb import AnwbProvider
+from goedkooptanken.providers.tankerkoenig import TankerkoenigProvider
+from goedkooptanken.routing import Router
 
 HOME = (51.90, 6.60)
 
@@ -158,7 +158,7 @@ class ProviderTests(unittest.TestCase):
         self.assertEqual(st["tk:t1"].prices[PETROL95], 1.829)
 
     def test_tankerkoenig_needs_key(self):
-        from fuelfinder.providers.base import ProviderError
+        from goedkooptanken.providers.base import ProviderError
         with self.assertRaises(ProviderError):
             TankerkoenigProvider(None).fetch(*HOME, 10)
 
@@ -284,7 +284,7 @@ class RoutingTests(unittest.TestCase):
 class CliTests(unittest.TestCase):
     def run_cli(self, argv, net):
         buf = io.StringIO()
-        from fuelfinder import config as cfgmod
+        from goedkooptanken import config as cfgmod
         real_load = cfgmod.load
 
         def load_without_cache(path=None):  # tests mogen elkaars data niet hergebruiken

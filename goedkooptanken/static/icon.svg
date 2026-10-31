@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>Goedkoop tanken</title>
+  <rect width="128" height="128" rx="28" fill="#1D9E75"/>
+  <g transform="translate(64,62) scale(1.75)">
+    <path d="M0,-22 C12,-6 16,2 16,8 A16,16 0 0 1 -16,8 C-16,2 -12,-6 0,-22 Z" fill="#FFFFFF"/>
+    <path d="M0,-1 V15 M-6,9 L0,15 L6,9" fill="none" stroke="#1D9E75" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

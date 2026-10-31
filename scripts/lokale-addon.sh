@@ -7,9 +7,9 @@ out="${1:?geef een uitvoermap op}"
 root="$(cd "$(dirname "$0")/.." && pwd)"
 rm -rf "$out"; mkdir -p "$out"
 cp -r "$root/goedkoop-tanken/." "$out/"
-cp -r "$root/fuelfinder" "$out/fuelfinder"
+cp -r "$root/goedkooptanken" "$out/goedkooptanken"
 find "$out" -name __pycache__ -type d -prune -exec rm -rf {} +
 # Zonder image-regel bouwt de Supervisor lokaal; het Dockerfile verwacht de code naast zich.
 sed -i '/^image:/d' "$out/config.yaml"
-sed -i 's#COPY fuelfinder /app/fuelfinder#COPY fuelfinder /app/fuelfinder#; s#COPY goedkoop-tanken/rootfs /#COPY rootfs /#' "$out/Dockerfile"
+sed -i 's#COPY goedkooptanken /app/goedkooptanken#COPY goedkooptanken /app/goedkooptanken#; s#COPY goedkoop-tanken/rootfs /#COPY rootfs /#' "$out/Dockerfile"
 echo "Klaar: kopieer '$out' naar /addons/goedkoop-tanken op je Home Assistant en kies Verversen in de add-on-winkel."

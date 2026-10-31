@@ -82,7 +82,7 @@ class SearchOutput:
     mode: str = "around"  # "around" (rondom een locatie) of "route" (langs een route)
     dest: tuple[float, float] | None = None
     dest_label: str = ""
-    route_km: float = 0.0     # lengte en rijtijd van de directe route
+    route_km: float = 0.0     # lengte en rijtijd van de snelste route
     route_min: float = 0.0
     corridor_km: float = 0.0
     max_km: float | None = None   # maximale rijafstand naar het station (alleen bij een route)
@@ -91,7 +91,7 @@ class SearchOutput:
     stations: list = field(default_factory=list)   # alle stations na samenvoegen van de bronnen
     dropped: list = field(default_factory=list)    # (weggelaten dubbel, winnend station)
     ranked: list = field(default_factory=list)     # alle doorgerekende stations, vóór de tijdlimiet
-    route_line: list = field(default_factory=list)  # [(lat, lon), ...] van de directe route
+    route_line: list = field(default_factory=list)  # [(lat, lon), ...] van de snelste route
     searched_areas: list = field(default_factory=list)  # [(lat, lon, straal_km), ...] bij de bronnen opgevraagd
 
     @property
@@ -374,7 +374,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
 
     return {
         "generated_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
-        "program": "fuelfinder",
+        "program": "Goedkoop tanken",
         "query": {
             "mode": out.mode, "start": {"lat": out.home[0], "lon": out.home[1], "label": out.home_label},
             "destination": ({"lat": out.dest[0], "lon": out.dest[1], "label": out.dest_label} if out.dest else None),

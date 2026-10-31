@@ -1,4 +1,4 @@
-"""Commandoregel: `python -m fuelfinder find | vehicle | check`."""
+"""Commandoregel: `python -m goedkooptanken find | vehicle | check`."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ def cmd_find(args, cfg) -> int:
     for name, msg in out.provider_messages.items():
         print(f"  bron {name}: {msg}")
     if out.notice:
-        print(f"\n{out.notice} Draai `python -m fuelfinder check` om de bronnen te testen.")
+        print(f"\n{out.notice} Draai `python -m goedkooptanken check` om de bronnen te testen.")
         return 1
 
     results = out.results
@@ -91,7 +91,7 @@ def cmd_find(args, cfg) -> int:
         row(results.index(baseline) + 1, baseline)
     if route:
         print(f"\nPrijs = EUR/liter. Tank = {eur(out.fill_liters, 0)} liter tanken. Extra km/Omweg = extra afstand en "
-              "tijd t.o.v. de directe route.\nOmrit = brandstofkosten van die omweg. Totaal = Tank + Omrit. "
+              "tijd t.o.v. de snelste route.\nOmrit = brandstofkosten van die omweg. Totaal = Tank + Omrit. "
               "Besparing = Totaal van het station met de kleinste omweg min dit Totaal.")
     else:
         print(f"\nPrijs = EUR/liter. Tank = {eur(out.fill_liters, 0)} liter tanken. Retour/Tijd = heen en terug naar huis. "
@@ -228,7 +228,7 @@ def cmd_check(args, cfg) -> int:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(prog="fuelfinder", description=__doc__)
+    parser = argparse.ArgumentParser(prog="goedkoop-tanken", description=__doc__)
     parser.add_argument("--config", help="pad naar config.toml (standaard: ./config.toml)")
     sub = parser.add_subparsers(dest="cmd", required=True)
 

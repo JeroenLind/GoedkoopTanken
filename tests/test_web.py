@@ -10,9 +10,9 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 from unittest import mock
 
-from fuelfinder import config, service
-from fuelfinder import http as fhttp
-from fuelfinder import web
+from goedkooptanken import config, service
+from goedkooptanken import http as fhttp
+from goedkooptanken import web
 from test_all import FakeNet, anwb_station
 
 
@@ -129,8 +129,15 @@ class WebTests(unittest.TestCase):
     def test_serves_page_with_security_headers(self):
         status, body, resp = self.call("GET", "/")
         self.assertEqual(status, 200)
-        self.assertIn("fuelfinder", body)
+        self.assertIn("<title>Goedkoop tanken</title>", body)
+        self.assertNotIn("fuel" + "finder", body.lower())
         self.assertIn("default-src 'self'", resp.getheader("Content-Security-Policy"))
+
+    def test_serves_app_icon(self):
+        status, body, resp = self.call("GET", "/icon.svg")
+        self.assertEqual(status, 200)
+        self.assertEqual(resp.getheader("Content-Type"), "image/svg+xml")
+        self.assertIn("<svg", body)
 
     def test_settings_roundtrip_and_key_not_exposed(self):
         status, data, _ = self.call("GET", "/api/settings")
@@ -246,7 +253,7 @@ class WebTests(unittest.TestCase):
         status, _, resp = self.call("GET", "/vendor/leaflet/images/marker-icon.png")
         self.assertEqual((status, resp.getheader("Content-Type")), (200, "image/png"))
         for path in ("/vendor/leaflet/../../web.py", "/vendor/../web.py", "/vendor/%2e%2e/web.py",
-                     "/fuelfinder/web.py", "/vendor/leaflet/nope.js", "/vendor/leaflet/"):
+                     "/goedkooptanken/web.py", "/vendor/leaflet/nope.js", "/vendor/leaflet/"):
             status, _, _ = self.call("GET", path)
             self.assertEqual(status, 404, path)
         self.assertEqual(self.call("GET", "/vendor/leaflet/leaflet.js", host="evil.example:80")[0], 403)
@@ -264,7 +271,7 @@ class WebTests(unittest.TestCase):
         self.call("POST", "/api/search", self.SEARCH)
         status, body, resp = self.call("GET", "/api/export")
         self.assertEqual(status, 200)
-        self.assertIn("attachment; filename=\"fuelfinder-data-", resp.getheader("Content-Disposition"))
+        self.assertIn("attachment; filename=\"goedkoop-tanken-data-", resp.getheader("Content-Disposition"))
         self.assertEqual(body["counts"]["stations_seen"], 2)
         _, screen, _ = self.call("POST", "/api/search", self.SEARCH)
         self.assertEqual([r["nr"] for r in body["stations"]], [r["rank"] for r in screen["results"]])

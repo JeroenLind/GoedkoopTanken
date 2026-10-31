@@ -3,8 +3,8 @@
 import unittest
 from unittest import mock
 
-from fuelfinder import config, service
-from fuelfinder import http as fhttp
+from goedkooptanken import config, service
+from goedkooptanken import http as fhttp
 from test_all import TK_RESPONSE, anwb_station
 
 

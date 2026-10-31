@@ -5,7 +5,7 @@ of meer regels (een hybride heeft er twee). Veldnamen die we gebruiken:
   brandstof_omschrijving, brandstofverbruik_gecombineerd (NEDC, l/100km),
   brandstofverbruik_gecombineerd_wltp (WLTP, l/100km).
 Het exacte veldgebruik is niet vooraf geverifieerd, daarom is de parser tolerant en toont
-`fuelfinder vehicle <kenteken> --raw` het ruwe antwoord.
+`goedkooptanken vehicle <kenteken> --raw` het ruwe antwoord.
 """
 
 from __future__ import annotations
