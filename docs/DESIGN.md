@@ -540,7 +540,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-13 tot FR-16 Vaste adressen | D-13, D-16 | `config.clean_places`, `service.resolve_destination`; `test_route.py`, `test_web.py` |
 | FR-17 Kaart met route | D-16 | `static/index.html`, `App.via`; `test_web.py` |
 | FR-18 Bron per station | D-11 | `web.serialize`, `static/index.html` |
-| FR-19 Berekening per station | D-15 | `static/index.html` |
+| FR-19, FR-40 Berekening per station, overzicht zonder autogegevens | D-15 | `static/index.html` |
 | FR-20, FR-21 Export | D-19 | `service.export_data`; `test_export.py` |
 | FR-22 Bron testen | D-20 | `service.test_source`, `http.quick`; `test_sources.py` |
 | FR-23 Instellingen in de app | D-12 | `config.py`, `web.py`; `test_web.py` |

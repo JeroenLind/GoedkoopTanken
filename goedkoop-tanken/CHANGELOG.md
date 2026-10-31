@@ -1,6 +1,7 @@
 # Wijzigingen
 
 ## Nog niet uitgebracht
+- Het overzicht boven de resultaten toont geen gegevens over de auto meer (naam, brandstof, verbruik); het verbruik staat nog wel in de berekening per station.
 - Langs een route zijn extra kilometers en minuten gemeten ten opzichte van de snelste route; dat staat nu ook zo in de uitleg, en het detailpaneel toont de omweg in minuten én kilometers, met de lengte en rijtijd van de snelste route zelf. Export en API vermelden de referentieroute.
 - Nieuwe naam en uiterlijk: overal "Goedkoop tanken", met een groen pictogram (druppel met pijl omlaag) in de app, het tabblad en de add-on, en een nieuw kleurenpalet. Op een breed scherm staat de kaart met het detail naast de lijst. Technisch heet het pakket nu `goedkooptanken`.
 - Bronnen kiezen is overzichtelijker: een lijst met bronnen (status, test, toelichting) en een lijst met landen waar je per land bronnen aan of uit zet en de prioriteit bepaalt. De eerdere bronkeuze vervalt; de standaard geldt (ANWB voor Nederland en België, Tankerkönig en ANWB voor Duitsland).

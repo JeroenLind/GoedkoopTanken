@@ -69,6 +69,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-19 | Bij een klik op een station (in de lijst, op de kaart of op een stip) toont de app de volledige berekening van dat station. | Jeroen | Klaar |
 | FR-20 | Er is een tijdelijke downloadknop met alle bekeken stations en gegevens (JSON), met de bron en status per station. | Jeroen | Klaar |
 | FR-21 | In die download staat ook het nummer of de positie uit de berekening, zodat het te relateren is aan wat op het scherm staat. | Jeroen | Klaar |
+| FR-40 | Het overzicht boven de resultaten toont alleen wat voor de gebruiker van belang is: vertrek, bestemming, snelste route, liters en zoekbereik. Gegevens over de auto (naam, brandstof, verbruik) staan daar niet; het verbruik blijft zichtbaar in de berekening van een station. | Jeroen | Klaar |
 
 ### 3.5 Bronnen en instellingen
 

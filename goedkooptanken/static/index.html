@@ -1234,17 +1234,11 @@ function render(d) {
   const [headline, sub] = verdictText(d);
   main.append(h("h2", { class: "verdict" }, headline), h("p", { class: "verdict-sub" }, sub));
 
-  const c = d.consumption;
-  const car = d.vehicle ? `${d.vehicle.description || d.vehicle.plate}` : null;
-  const how = c.explicit ? "opgegeven" : `${c.source ? c.source + ", " : ""}officieel ${nl(c.official, 1)} × ${nl(c.factor, 1)}`;
   const short = (l) => l.split(",").slice(0, 3).join(",");
   main.append(h("ul", { class: "context" },
     h("li", null, "Vertrek: ", h("b", null, short(d.home.label))),
     route && h("li", null, "Bestemming: ", h("b", null, short(d.dest.label))),
     route && h("li", null, "Snelste route: ", h("b", null, `${nl(d.route.km, 0)} km, ${d.route.min} min`), d.any_estimated ? " (geschat)" : ""),
-    car && h("li", null, "Auto: ", h("b", null, car)),
-    h("li", null, "Brandstof: ", h("b", null, d.fuel_label)),
-    h("li", null, "Verbruik: ", h("b", null, `${nl(c.real, 1)} l/100 km`), ` (${how})`),
     h("li", null, h("b", null, `${nl(d.fill_liters, 0)} liter`),
       route ? ` tanken, zoeken tot ${nl(d.corridor_km, 0)} km naast de route` : ` tanken, zoekstraal ${nl(d.radius_km, 0)} km`)));
 
