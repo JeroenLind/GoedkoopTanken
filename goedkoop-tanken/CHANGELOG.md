@@ -1,7 +1,7 @@
 # Wijzigingen
 
 ## 0.0.1
-Eerste testversie. Bekend: het verkeer telt nog niet mee (issue #1), de Duitse bron Tankerkönig kan soms traag zijn, en de ANWB-bron is niet officieel en kan zonder waarschuwing veranderen.
+Eerste testversie. Bekend: het verkeer telt nog niet mee (issue #1) en de ANWB-bron is niet officieel en kan zonder waarschuwing veranderen.
 
 - Nieuw helpmenu (knop Help bovenaan): uitleg over rondom mij en langs een route, het resultaat, de berekening en alle instellingen met hun effect.
 - Het instellingenmenu toont bij het thuisadres en de vaste adressen alleen nog het adres, niet meer de coördinaten.
