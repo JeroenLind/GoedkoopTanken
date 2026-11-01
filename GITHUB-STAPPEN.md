@@ -10,7 +10,7 @@ bewust een tag `vX.Y.Z` pusht.
 | Actie | Workflow | Resultaat |
 | --- | --- | --- |
 | Push naar `main` of pull request | `ci.yaml` | Tests (Python 3.11 en 3.13), controle van de add-on-bestanden, testbouw van het image voor amd64 en arm64. **Er wordt niets gepubliceerd.** |
-| Push van een tag `v0.1.0` | `release.yaml` | Tests, controle dat de tag gelijk is aan `version` in `config.yaml`, bouwen, publiceren naar `ghcr.io/<jij>/goedkoop-tanken` (tags `v0.1.0` en `latest`) en een GitHub Release |
+| Push van een tag `v0.0.1` | `release.yaml` | Tests, controle dat de tag gelijk is aan `version` in `config.yaml`, bouwen, publiceren naar `ghcr.io/<jij>/goedkoop-tanken` (tags `v0.0.1` en `latest`) en een GitHub Release. Versies die met `0.` beginnen worden als pre-release gemarkeerd |
 
 ## Eerste keer: stappen
 
@@ -40,12 +40,12 @@ bewust een tag `vX.Y.Z` pusht.
 
 ## Een release maken (pas als CI groen is en de Pi-test werkt)
 
-1. Zet `version` in `goedkoop-tanken/config.yaml` (bijv. `"0.1.0"`) en voeg in `goedkoop-tanken/CHANGELOG.md` een kop `## 0.1.0` toe.
+1. Zet `version` in `goedkoop-tanken/config.yaml` (bijv. `"0.0.1"`) en voeg in `goedkoop-tanken/CHANGELOG.md` een kop `## 0.0.1` toe.
 2. Commit en push naar `main`.
 3. Maak en push de tag:
    ```
-   git tag v0.1.0
-   git push origin v0.1.0
+   git tag v0.0.1
+   git push origin v0.0.1
    ```
 4. De workflow `Release` publiceert het image. Daarna:
    - Ga op GitHub naar je profiel, **Packages**, `goedkoop-tanken`, **Package settings** en zet de zichtbaarheid op **Public**

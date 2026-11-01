@@ -489,7 +489,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 ### D-22. Bouwen met standaard Docker-acties, release alleen via een tag
 
 - **Besluit door:** Jeroen (tag, geen release bij gewone push), Claude (acties). **Eisen:** NFR-4, NFR-5, NFR-16.
-- **Keuze:** `docker/build-push-action` met QEMU voor amd64 en arm64 naar één multi-arch manifest; de tag moet gelijk zijn aan `version`.
+- **Keuze:** `docker/build-push-action` met QEMU voor amd64 en arm64 naar één multi-arch manifest; de tag moet gelijk zijn aan `version`. Een tag `v0.*` geeft een GitHub Release die als pre-release is gemarkeerd (Jeroen wilde een testversie 0.0.1).
 - **Reden:** de standaardacties zijn breed gedocumenteerd en vragen geen aannames over een Home Assistant-specifieke bouwactie.
 - **Afgewezen:** de Home Assistant-builder-actie; losse images per architectuur (een manifest laat Home Assistant zelf kiezen).
 

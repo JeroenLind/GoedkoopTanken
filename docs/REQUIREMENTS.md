@@ -120,7 +120,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | NFR-2 | De add-on heet "Goedkoop tanken" en draait op aarch64 en amd64. | Jeroen | Klaar |
 | NFR-3 | Eén publieke GitHub-repository bevat de code, de add-on en de bouwconfiguratie. | Jeroen | Klaar |
 | NFR-4 | De add-on wordt via GitHub gebouwd en verspreid als kant-en-klare images op GitHub Container Registry; gebruikers bouwen niet zelf. | Jeroen | Klaar |
-| NFR-5 | Een release ontstaat alleen via een versie-tag (bijvoorbeeld v0.1.0), die test, bouwt en publiceert. Een gewone push maakt nooit een release. | Jeroen | Klaar |
+| NFR-5 | Een release ontstaat alleen via een versie-tag (bijvoorbeeld v0.0.1), die test, bouwt en publiceert. Een versie die met 0. begint is een testversie en wordt op GitHub als pre-release gemarkeerd. Een gewone push maakt nooit een release. | Jeroen | Klaar |
 | NFR-6 | De licentie is GPL v3. | Jeroen | Klaar |
 
 ### 4.2 Gebruik en kwaliteit
