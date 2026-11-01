@@ -152,7 +152,6 @@
   .row { display: flex; gap: 8px; align-items: stretch; }
   .row > * { min-width: 0; }
   .row .grow { flex: 1; }
-  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .hint { font-size: .82rem; color: var(--ink-soft); margin: -6px 0 12px; min-height: 1.2em; }
   .hint.err { color: var(--loss); }
   .check { display: flex; gap: 8px; align-items: center; margin: 0 0 8px; }
@@ -368,10 +367,7 @@
           <button type="button" class="btn" id="geocode">Zoek</button>
         </div>
       </label>
-      <div class="pair">
-        <label class="field"><span>Breedtegraad</span><input type="text" id="lat" inputmode="decimal"></label>
-        <label class="field"><span>Lengtegraad</span><input type="text" id="lon" inputmode="decimal"></label>
-      </div>
+      <input type="hidden" id="lat"><input type="hidden" id="lon">
       <p class="hint" id="home-hint">Wordt gebruikt voor de knop Thuis, en als je locatie niet bepaald kan worden.</p>
       <div id="ha-group" hidden>
         <label class="field"><span>Telefoon-tracker in Home Assistant</span>
@@ -756,7 +752,8 @@ function placeRow(p = {}) {
   const hintEl = h("p", { class: "hint" });
   const name = inp("p-name", "Bv. Werk", p.name, { maxlength: "40" });
   const addr = inp("p-address", "Straat 1, Plaats", p.address);
-  const lat = inp("p-lat", "", p.lat, { inputmode: "decimal" }), lon = inp("p-lon", "", p.lon, { inputmode: "decimal" });
+  const lat = inp("p-lat", "", p.lat, { type: "hidden" }), lon = inp("p-lon", "", p.lon, { type: "hidden" });
+  addr.addEventListener("input", () => { lat.value = ""; lon.value = ""; });   // een gewijzigd adres krijgt nieuwe coördinaten
   const find = h("button", { type: "button", class: "btn" }, "Zoek");
   find.addEventListener("click", async () => {
     hintEl.textContent = "Adres opzoeken…"; hintEl.classList.remove("err");
@@ -790,10 +787,7 @@ function placeRow(p = {}) {
   const row = h("div", { class: "placerow" },
     h("label", { class: "field" }, h("span", null, "Naam"), name),
     h("label", { class: "field" }, h("span", null, "Adres"), h("div", { class: "row" }, addr, find)),
-    h("div", { class: "pair" },
-      h("label", { class: "field" }, h("span", null, "Breedtegraad"), lat),
-      h("label", { class: "field" }, h("span", null, "Lengtegraad"), lon)),
-    hintEl, h("div", { class: "row" }, onmap, del));
+    lat, lon, hintEl, h("div", { class: "row" }, onmap, del));
   del.addEventListener("click", () => { row.remove(); setDirty(true); refreshPlacePick(); });
   return row;
 }
@@ -823,6 +817,8 @@ $("addplace").addEventListener("click", () => {
   const row = placeRow(); $("places").append(row); setDirty(true);
   row.querySelector(".p-name").focus();
 });
+
+$("address").addEventListener("input", () => { $("lat").value = ""; $("lon").value = ""; });   // gewijzigd adres: opnieuw opzoeken
 
 $("lookup").addEventListener("click", async () => {
   hint("car-hint", "Kenteken opzoeken…");

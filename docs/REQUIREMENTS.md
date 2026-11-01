@@ -65,6 +65,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-14 | Een vast adres kan worden ingesteld door het adres te typen of door de plek op een kaart te kiezen. | Jeroen | Klaar |
 | FR-15 | Bij een route kiest de gebruiker de bestemming uit de lijst met vaste adressen. | Jeroen | Klaar |
 | FR-16 | Het los ingestelde thuisadres staat ook in die keuzelijst. | Jeroen | Klaar |
+| FR-47 | In het instellingenmenu staat bij het thuisadres en bij de vaste adressen alleen het adres; de coördinaten worden niet getoond. | Jeroen | Klaar |
 
 ### 3.4 Resultaten, kaart en inzicht
 

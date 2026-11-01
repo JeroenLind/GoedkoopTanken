@@ -244,7 +244,7 @@ flowchart TD
 
 ### 5.6 Vaste adressen en bestemming
 
-- Het menu bevat een lijst met rijen (naam, adres, coördinaten). Een rij kan worden gevuld door een adres te typen en op **Zoek** te klikken, of via **Kies op kaart**.
+- Het menu bevat een lijst met rijen (naam, adres). De coördinaten staan in verborgen velden (FR-47); wijzigt de gebruiker het adres met de hand, dan worden ze leeggemaakt en zoekt de app het adres opnieuw op. Een rij kan worden gevuld door een adres te typen en op **Zoek** te klikken, of via **Kies op kaart**.
 - Bij **Kies op kaart** opent dezelfde kaartdialoog als bij de bestemming. Na de keuze worden de coördinaten ingevuld; het adresveld wordt alleen gevuld als het leeg was (reverse geocoding).
 - De keuzelijst bij de bestemming bevat eerst **Thuis** (als er een thuisadres is, en tenzij de gebruiker zelf een adres "Thuis" heeft), daarna de vaste adressen.
 - Een gekozen adres met coördinaten wordt als punt verstuurd; zonder coördinaten wordt het adres bij het berekenen opgezocht.
@@ -545,7 +545,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-10 Bestemming op kaart | D-16 | `static/index.html`; handmatig en browsertest |
 | FR-11 Omdraaien | D-15 | `static/index.html` |
 | FR-12 Maximale afstand | D-24 | `calc.rank_along`, `routing._osrm_detours`, `service.export_data`; `test_route.py` |
-| FR-13 tot FR-16 Vaste adressen | D-13, D-16 | `config.clean_places`, `service.resolve_destination`; `test_route.py`, `test_web.py` |
+| FR-13 tot FR-16, FR-47 Vaste adressen | D-13, D-16 | `config.clean_places`, `service.resolve_destination`; `test_route.py`, `test_web.py` |
 | FR-17 Kaart met route | D-16 | `static/index.html`, `App.via`; `test_web.py` |
 | FR-18 Bron per station | D-11 | `web.serialize`, `static/index.html` |
 | FR-19, FR-40 Berekening per station, overzicht zonder autogegevens | D-15 | `static/index.html` |
