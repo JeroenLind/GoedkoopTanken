@@ -10,7 +10,7 @@ bewust een tag `vX.Y.Z` pusht.
 | Actie | Workflow | Resultaat |
 | --- | --- | --- |
 | Push naar `main` of pull request | `ci.yaml` | Tests (Python 3.11 en 3.13), controle van de add-on-bestanden, testbouw van het image voor amd64 en arm64. **Er wordt niets gepubliceerd.** |
-| Push van een tag `v0.0.1` | `release.yaml` | Tests, controle dat de tag gelijk is aan `version` in `config.yaml`, bouwen, publiceren naar `ghcr.io/<jij>/goedkoop-tanken` (tags `v0.0.1` en `latest`) en een GitHub Release. Versies die met `0.` beginnen worden als pre-release gemarkeerd |
+| Push van een tag `v0.0.1` | `release.yaml` | Tests, controle dat de tag gelijk is aan `version` in `config.yaml`, bouwen, publiceren naar `ghcr.io/<jij>/goedkoop-tanken` (tags `0.0.1`, dus zonder `v`, en `latest`) en een GitHub Release. Versies die met `0.` beginnen worden als pre-release gemarkeerd |
 
 ## Eerste keer: stappen
 

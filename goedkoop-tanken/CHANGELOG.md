@@ -1,5 +1,8 @@
 # Wijzigingen
 
+## 0.0.2
+Herstelt de installatie: het image van 0.0.1 kreeg de tag `v0.0.1`, terwijl Home Assistant `0.0.1` opvraagt (fout "manifest unknown"). Het image heeft nu de tag zonder `v`. Verder gelijk aan 0.0.1.
+
 ## 0.0.1
 Eerste testversie. Bekend: het verkeer telt nog niet mee (issue #1) en de ANWB-bron is niet officieel en kan zonder waarschuwing veranderen.
 

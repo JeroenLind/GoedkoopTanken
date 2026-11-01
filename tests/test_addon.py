@@ -16,6 +16,13 @@ class AddonFilesTests(unittest.TestCase):
         r = subprocess.run([sys.executable, str(ROOT / "scripts" / "check_addon.py")], capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stdout)
 
+    def test_release_image_tag_has_no_v(self):
+        # Home Assistant haalt ghcr.io/<naam>:<version> op, met version uit config.yaml (bv. 0.0.1, zonder v)
+        wf = (ROOT / ".github" / "workflows" / "release.yaml").read_text(encoding="utf-8")
+        self.assertIn("${GITHUB_REF_NAME#v}", wf)
+        self.assertNotIn("name }}:${{ github.ref_name }}", wf)   # de imagetag is nooit de ruwe tagnaam (met v)
+        self.assertIn(":${{ steps.ver.outputs.version }}", wf)
+
 
 if __name__ == "__main__":
     unittest.main()

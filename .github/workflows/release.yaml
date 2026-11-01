@@ -32,6 +32,9 @@ jobs:
       - name: Naam van het image (kleine letters)
         id: img
         run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/goedkoop-tanken" >> "$GITHUB_OUTPUT"
+      - name: Versie zonder v (Home Assistant vraagt het image op met de versie uit config.yaml, dus zonder v)
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
       - name: Bouw en publiceer (multi-arch manifest)
         uses: docker/build-push-action@v7
         with:
@@ -40,10 +43,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            BUILD_VERSION=${{ github.ref_name }}
+            BUILD_VERSION=${{ steps.ver.outputs.version }}
             BUILD_REPOSITORY=${{ github.server_url }}/${{ github.repository }}
           tags: |
-            ${{ steps.img.outputs.name }}:${{ github.ref_name }}
+            ${{ steps.img.outputs.name }}:${{ steps.ver.outputs.version }}
             ${{ steps.img.outputs.name }}:latest
       - name: GitHub Release
         uses: softprops/action-gh-release@v3
