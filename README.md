@@ -1,10 +1,25 @@
 # Goedkoop tanken
 
-Zoekt het goedkoopste tankstation **inclusief de kosten van de omrit** (heen én terug naar huis),
-over de grens heen. Dit is een lokale testversie voor op je laptop; de logica is los van de
-interface gehouden, zodat er later een app, website of Home Assistant-koppeling op kan.
+Zoekt het goedkoopste tankstation **inclusief de kosten van de omrit en de extra rijtijd**, over de grens
+heen (Nederland, Duitsland en België). Je gebruikt het als **Home Assistant-add-on** (in de zijbalk) of
+op je laptop als gewone webapp. Versies die met `0.` beginnen zijn testversies.
 
-## Starten
+Twee manieren van zoeken: **rondom mij** (waar tank ik het voordeligst vanaf hier?) en **langs een route**
+(waar tank ik onderweg van A naar B?). In de app legt het menu **Help** alles uit: het bedoelde gebruik,
+het resultaat, de berekening en alle instellingen.
+
+## Installeren als Home Assistant-add-on
+
+1. Ga in Home Assistant naar *Instellingen, Add-ons, Add-on-winkel, Repositories* en voeg
+   `https://github.com/JeroenLind/GoedkoopTanken` toe.
+2. Installeer **Goedkoop tanken** uit de winkel en start de add-on. Hij verschijnt in de zijbalk.
+3. Vul in de app (menu linksboven) je thuisadres, kenteken en eventueel een Tankerkönig-sleutel in
+   en kies *Instellingen opslaan*. De instellingen blijven bewaard in `/data`.
+
+Het image wordt via GitHub gebouwd en gepubliceerd; je hoeft zelf niets te bouwen. Zie hieronder
+voor testen zonder GitHub en voor het maken van een release.
+
+## Starten op je laptop
 
 Vereist Python 3.11+. Geen pakketten installeren nodig.
 
@@ -26,11 +41,12 @@ python -m goedkooptanken web          # opent http://127.0.0.1:8080 in je browse
 python -m goedkooptanken web --port 9000 --no-browser
 ```
 
-Op de hoofdpagina staan alleen **Huidige locatie**, **Liters tanken** en **Bereken**. De locatie wordt
-bij het openen automatisch opgezocht via je apparaat (de browser vraagt eerst toestemming); lukt dat
-niet, dan val je terug op je thuisadres of typ je zelf een adres. De rit heen en terug wordt
+Op de hoofdpagina kies je **Rondom mij** of **Langs een route**, vul je de locatie (en bij een route de
+bestemming) en het aantal liters in, en kies je **Bereken**. Met **Mijn locatie** gebruikt de app je apparaat
+(de browser vraagt eerst toestemming); in het menu kun je dat ook automatisch bij het openen laten doen.
+Lukt het niet, dan gebruik je **Thuis** of typ je zelf een adres. De rit heen en terug wordt
 berekend vanaf die locatie. Alle andere instellingen (thuisadres, auto, zoekstraal, tijdlimiet,
-bronnen, routering) staan achter de hamburgerknop linksboven. **Bereken** gebruikt wat er op dat moment
+waarde van je tijd, bronnen, routering) staan achter de hamburgerknop linksboven. **Bereken** gebruikt wat er op dat moment
 in het formulier staat (ook zonder opslaan). **Instellingen opslaan** schrijft
 naar `config.toml`, dezelfde instellingen die de opdrachtregel gebruikt. Opmerkingen in een met de
 hand geschreven `config.toml` blijven niet behouden zodra je via de webinterface opslaat.
@@ -74,6 +90,20 @@ Hoe het rekent:
   heb je internet nodig, en OpenStreetMap ziet dan welk gebied je bekijkt. Zonder kaart kun je altijd een adres typen.
 - Het is een enkele rit (heen). Voor de terugweg gebruik je Omdraaien.
 - Routes langer dan ongeveer 600 km worden geweigerd.
+
+## Aanrader en referentie
+
+Het resultaat toont één **aanrader**: het station met de laagste kosten inclusief tijd (totaal plus extra
+minuten × waarde van je tijd per uur / 60). De waarde van je tijd is standaard € 15 per uur en instelbaar
+(0 = alleen op prijs kiezen). De lijst blijft op totaalprijs gesorteerd; de aanrader is groen gemarkeerd en
+heeft een knop **Navigeer**. Is het goedkoopste station niet de aanrader, dan staat in het resultaat hoeveel
+goedkoper het is en hoeveel extra minuten dat kost.
+
+De besparing is vergeleken met de **referentie**: het goedkoopste station dat op de route ligt. In het menu
+kies je of dat op afstand (standaard omweg minder dan 0,5 km) of op tijd (standaard minder dan 3 minuten)
+wordt bepaald; beide grenzen zijn instelbaar. Ligt er geen station binnen de grens, dan is het station met
+de kleinste omweg de referentie. Rondom een locatie gelden dezelfde regels, met het dichtstbijzijnde
+station als uitgangspunt.
 
 ## Kaart bij de resultaten en data-download
 
@@ -129,23 +159,29 @@ Het dichtstbijzijnde station blijft altijd in de lijst.
 vulkosten = liters x prijs
 omrit     = (km heen + km terug) x verbruik/100 x prijs
 totaal    = vulkosten + omrit
-besparing = totaal(dichtstbijzijnde station) - totaal(dit station)
+tijd      = extra minuten x waarde van je tijd / 60
+besparing = totaal(referentie) - totaal(dit station)
 ```
+
+De aanrader is het station met het laagste `totaal + tijd`. De referentie staat onder
+*Aanrader en referentie*; rondom een locatie telt de extra rit ten opzichte van het dichtstbijzijnde station.
 
 Verbruik komt uit het kenteken (WLTP, anders NEDC) maal `real_world_factor` (standaard 1,2,
 omdat het praktijkverbruik hoger ligt). Zelf opgegeven verbruik wordt niet gecorrigeerd.
 Afstanden zijn rijafstanden via OSRM; als OSRM niet bereikbaar is schat het programma
 1,3 x hemelsbreed en markeert dat met `~`.
 
-## Wat is NIET getest tegen de echte dienst
+## Bronnen en betrouwbaarheid
 
-De ontwikkelomgeving kon de externe diensten niet bereiken. Deze delen zijn gebouwd op
-documentatie en de broncode van de bibliotheek pyfuelprices, maar nog niet live geprobeerd.
-`python -m goedkooptanken check` toont per bron of het werkt:
+`python -m goedkooptanken check` (en in de app de testknop bij Bronnen) toont per bron of het werkt.
 
-- **RDW**: de veldnamen voor verbruik (`brandstofverbruik_gecombineerd(_wltp)`). `check` meldt ontbrekende velden; `vehicle <kenteken> --raw` toont het ruwe antwoord.
-- **ANWB Onderweg**: endpoint, responsvorm en brandstofcodes (`EURO95`, `DIESEL`, ...). Het endpoint is niet officieel gedocumenteerd en kan veranderen. `check` toont welke brandstoftypen er echt voorbijkomen.
-- **Tankerkönig** en **OSRM**: standaard API's, wel nog niet live gedraaid.
+- **ANWB Onderweg** (Nederland en België): geen officiële of gedocumenteerde dienst. Het endpoint, de
+  responsvorm en de brandstofcodes (`EURO95`, `DIESEL`, ...) kunnen zonder waarschuwing veranderen. Valt de bron uit,
+  dan gebruikt de app oudere prijzen uit de cache met een melding.
+- **Tankerkönig** (Duitsland): officiële API met een eigen gratis sleutel.
+- **OSRM** (afstand en rijtijd): standaard een openbare server; houd het gebruik beleefd. Zonder OSRM schat de app.
+- **RDW** (kenteken): de veldnamen voor verbruik (`brandstofverbruik_gecombineerd(_wltp)`). `check` meldt
+  ontbrekende velden; `vehicle <kenteken> --raw` toont het ruwe antwoord.
 
 ## Nieuwe bron of grens toevoegen
 
@@ -164,9 +200,9 @@ De rekenkern verandert niet.
 De map `goedkoop-tanken/` is de add-on (Ingress in de zijbalk, instellingen in `/data`). Dezelfde code
 draait nog steeds op je laptop met `python -m goedkooptanken web`.
 
-- Vervang `GITHUB_GEBRUIKER` in `repository.yaml`, `goedkoop-tanken/config.yaml` en `goedkoop-tanken/Dockerfile`.
 - Lokaal testen op je Pi zonder GHCR: `scripts/lokale-addon.sh <map>`, kopieer de map naar `/addons/goedkoop-tanken`
   op Home Assistant en kies Verversen in de add-on-winkel.
 - Release: zet `version` in `config.yaml` en `goedkoop-tanken/CHANGELOG.md`, maak tag `vX.Y.Z` en push die;
-  `.github/workflows/release.yaml` test, bouwt aarch64 + amd64 en publiceert naar `ghcr.io`.
+  `.github/workflows/release.yaml` test, bouwt aarch64 + amd64 en publiceert naar `ghcr.io`. Een gewone push maakt
+  nooit een release. Tags `v0.*` worden als pre-release gemarkeerd. De stappen staan in `GITHUB-STAPPEN.md`.
 - Licentie: GPL v3 (`LICENSE`).
