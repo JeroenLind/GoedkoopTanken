@@ -537,6 +537,13 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Afgewezen:** een aparte helppagina of Markdown-bestand (extra route en weergave nodig, niet besproken); uitleg alleen als tooltips (te kort voor het bedoelde gebruik).
 - **Onderhoud:** `test_web.test_help_covers_every_setting_and_both_modes` controleert dat de inhoudsopgave klopt en dat elk label in het instellingenmenu in de help voorkomt. Wijzigt een instelling, dan wijzigt de help mee.
 
+### D-29. Informatiepagina van de add-on met screenshots uit de repository
+
+- **Besluit door:** Jeroen (korte beschrijving en screenshot), Claude (uitwerking). **Eisen:** FR-49.
+- **Keuze:** Home Assistant toont `goedkoop-tanken/README.md` op het tabblad Info. Dat bestand heeft de beschrijving, de belangrijkste functies en twee screenshots (breed en telefoon) uit `docs/screenshots/`. De afbeeldingen staan als absolute `raw.githubusercontent.com`-adressen in het bestand. De screenshots zijn gemaakt met de echte interface en verzonnen voorbeeldstations (gemarkeerd als voorbeeldgegevens), met de kaart uit zodat er geen kaartbeelden van OpenStreetMap in staan.
+- **Reden:** Home Assistant laadt een relatief pad vanuit de repository niet; een absolute adres wel. De kaart staat uit, omdat de kaartbeelden anders van een externe dienst komen.
+- **Let op:** de afbeeldingen komen van `main`. Verandert de interface, dan zijn ze verouderd en moeten ze opnieuw gemaakt worden; er is geen script in de repository dat dat doet. Of Home Assistant de afbeeldingen toont is nog niet gecontroleerd.
+
 ## 9. Traceerbaarheid: eisen naar ontwerp
 
 | Eis | Ontwerpkeuze | Modules en tests |
@@ -548,6 +555,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-5 Routering en adressen | D-6 | `routing.py`, `geo.py`; `test_all.py` |
 | FR-6 Resultaat en besparing | D-4, D-27 | `calc.py`, `web.serialize`; `test_web.py` |
 | FR-7 Prijscache | D-9, D-10 | `cache.py`; `test_cache.py` |
+| FR-49 Informatiepagina add-on | D-29 | `goedkoop-tanken/README.md`, `docs/screenshots/`; `test_addon.py` |
 | FR-48 Helpmenu | D-28 | `static/index.html` (`#helpdlg`); `test_web.py` |
 | FR-41 t/m FR-46 Aanrader, tijdwaarde, referentie en Navigeer | D-27 | `calc.mark_recommended`, `calc.pick_reference`, `config.py`, `service.py`, `web.serialize`, `static/index.html`; `test_recommend.py`, `test_route.py` |
 | FR-8, FR-9, FR-38 Langs een route | D-7, D-8 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |

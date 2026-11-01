@@ -1,5 +1,8 @@
 # Wijzigingen
 
+## Nog niet uitgebracht
+- De informatiepagina van de add-on in Home Assistant heeft nu een beschrijving en screenshots.
+
 ## 0.0.2
 Herstelt de installatie: het image van 0.0.1 kreeg de tag `v0.0.1`, terwijl Home Assistant `0.0.1` opvraagt (fout "manifest unknown"). Het image heeft nu de tag zonder `v`. Verder gelijk aan 0.0.1.
 

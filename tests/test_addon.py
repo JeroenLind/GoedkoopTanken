@@ -23,6 +23,15 @@ class AddonFilesTests(unittest.TestCase):
         self.assertNotIn("name }}:${{ github.ref_name }}", wf)   # de imagetag is nooit de ruwe tagnaam (met v)
         self.assertIn(":${{ steps.ver.outputs.version }}", wf)
 
+    def test_info_page_has_description_and_existing_screenshots(self):
+        import re
+        readme = (ROOT / "goedkoop-tanken" / "README.md").read_text(encoding="utf-8")
+        self.assertGreater(len(readme), 600)
+        shots = re.findall(r"raw\.githubusercontent\.com/[^/]+/[^/]+/main/(docs/screenshots/[\w.-]+)", readme)
+        self.assertTrue(shots)
+        for rel in shots:
+            self.assertTrue((ROOT / rel).exists(), rel)
+
 
 if __name__ == "__main__":
     unittest.main()
