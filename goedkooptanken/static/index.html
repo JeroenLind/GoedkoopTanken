@@ -196,6 +196,23 @@
   .pin { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #fafaf7;
     color: #17212b; border: 2px solid #17212b; font: 700 .85rem/1 var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.35); }
   .pin.best { background: var(--accent); }
+  .verdict-box { display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: flex-start; justify-content: space-between; margin: 0 0 14px; }
+  .verdict-text { flex: 1 1 420px; min-width: 0; }
+  .verdict-text .verdict { margin-top: 8px; }
+  .verdict-text .verdict-sub { margin-bottom: 0; }
+  .verdict-nav { flex: 0 1 280px; min-width: 200px; }
+  .btn.navbig { width: 100%; padding: 16px 24px; font-size: 1.25rem; }
+  .verdict-note { margin: 0 0 18px; padding: 10px 14px; border: 1px solid var(--accent); border-radius: 10px; max-width: 80ch;
+    background: var(--surface); font-size: .95rem; }
+  a.inlinelink { color: var(--brand); font-weight: 600; }
+  .tag.rec { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 700; }
+  .tag.cheap { border-color: var(--ink); color: var(--ink); font-weight: 700; }
+  .near { border: 1px solid var(--line); border-radius: 10px; margin: 0 0 12px; padding: 8px 12px 4px; }
+  .near legend { font-size: .9rem; font-weight: 600; padding: 0 6px; }
+  .nearrow { align-items: center; margin: 0 0 8px; }
+  .nearrow .check { flex: 1; margin: 0; }
+  .nearrow input[type=text] { width: 4.5rem; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--surface); text-align: right; }
   .pin.base { border-style: dashed; }
   .pin.sel { box-shadow: 0 0 0 4px rgba(29,95,209,.55), 0 1px 4px rgba(0,0,0,.35); transform: scale(1.12); }
   tbody tr[tabindex] { cursor: pointer; }
@@ -410,6 +427,19 @@
       </div>
       <p class="hint">Zoekstraal geldt rondom een locatie. Extra tijd is dan gemeten ten opzichte van het dichtstbijzijnde
         station; langs een route is het de omweg zelf, en bepaalt het ook hoe breed er naast de route gezocht wordt. 0 = geen limiet.</p>
+      <label class="field"><span>Waarde van je tijd (euro per uur)</span><input type="text" id="timevalue" inputmode="decimal"></label>
+      <p class="hint">Wat is een uur extra rijden je waard? De extra rijtijd telt mee als kosten bij het kiezen van de aanrader.
+        Een hoger bedrag kiest eerder een station dichtbij; 0 kiest alleen op prijs.</p>
+      <fieldset class="near">
+        <legend>Wanneer ligt een station op de route?</legend>
+        <p class="hint">Het goedkoopste station op de route is de referentie waarmee de besparing wordt vergeleken. Kies waarop de app
+          dat bepaalt; beide grenzen zijn aan te passen. Rondom een locatie telt de extra rit ten opzichte van het dichtstbijzijnde station.
+          Afstand is stabieler dan tijd, omdat de routeserver soms rare omwegminuten geeft.</p>
+        <div class="row nearrow"><label class="check"><input type="radio" name="nearmode" id="near-distance" value="distance"> Op afstand: omweg minder dan</label>
+          <input type="text" id="nearkm" inputmode="decimal" aria-label="Grens in kilometers"> km</div>
+        <div class="row nearrow"><label class="check"><input type="radio" name="nearmode" id="near-time" value="time"> Op tijd: omweg minder dan</label>
+          <input type="text" id="nearmin" inputmode="decimal" aria-label="Grens in minuten"> min</div>
+      </fieldset>
     </section>
 
     <section class="group">
@@ -562,6 +592,10 @@ function fillForm(s) {
   $("radius").value = s.search.radius_km;
   $("maxextra").value = s.search.max_extra_min;
   $("maxresults").value = s.search.max_results;
+  $("timevalue").value = s.search.time_value;
+  $("nearkm").value = s.search.near_max_km;
+  $("nearmin").value = s.search.near_max_min;
+  $("near-" + s.search.near_mode).checked = true;
   srcCatalog = s.providers.catalog;
   srcState = JSON.parse(JSON.stringify(s.providers.countries));
   keySource = s.providers.tankerkoenig_key_source;
@@ -587,7 +621,9 @@ function collect() {                           // alle instellingen zoals ze nu 
     vehicle: { plate: $("plate").value, fuel: $("fuel").value,
       consumption_l_per_100km: $("consumption").value, real_world_factor: $("factor").value },
     search: { fill_liters: $("fill").value, radius_km: $("radius").value,
-      max_extra_min: $("maxextra").value || "0", max_results: $("maxresults").value },
+      max_extra_min: $("maxextra").value || "0", max_results: $("maxresults").value,
+      time_value: $("timevalue").value, near_mode: document.querySelector("input[name=nearmode]:checked")?.value || "distance",
+      near_max_km: $("nearkm").value, near_max_min: $("nearmin").value },
     providers: { countries: srcState, allow_e10: $("e10").checked, tankerkoenig_api_key: $("tkkey").value },
     routing: { enabled: $("routing").checked, osrm_url: $("osrm").value },
     cache: { enabled: $("cache-on").checked, max_age_hours: $("cache-hours").value },
@@ -1030,8 +1066,8 @@ async function run(refresh = false) {
 /* ================= navigeren ================= */
 const navmenu = $("navmenu");
 let shown = null;                                // het laatst getoonde resultaat
-function navButton(r) {
-  const btn = h("button", { type: "button", class: "btn navbtn", "aria-haspopup": "menu",
+function navButton(r, cls = "btn navbtn") {
+  const btn = h("button", { type: "button", class: cls, "aria-haspopup": "menu",
     "aria-label": "Navigeer naar " + r.name }, "Navigeer");
   btn.addEventListener("click", () => {
     if (typeof navmenu.showPopover !== "function") { window.open(r.nav.google, "_blank", "noopener"); return; }
@@ -1098,7 +1134,7 @@ function buildResultMap(d, el) {
   dot([d.home.lat, d.home.lon], "#f5c518", "Vertrek");
   if (route) dot([d.dest.lat, d.dest.lon], "#17212b", "Bestemming");
   for (const r of d.results) {
-    const m = L.marker([r.lat, r.lon], { icon: pinIcon(r.rank === 1 ? "best" : r.is_baseline ? "base" : "", r.rank), keyboard: false, riseOnHover: true })
+    const m = L.marker([r.lat, r.lon], { icon: pinIcon(r.is_recommended ? "best" : r.is_baseline ? "base" : "", r.rank), keyboard: false, riseOnHover: true })
       .bindTooltip(tip(`${r.rank}. ${r.name}`, `${nl(r.price, 3)} per liter · totaal ${eur(r.total)}`, sourceNote(r))).addTo(map);
     m.on("click", () => selectStation(d, r, true));
     res.markers.set(r.rank, m);
@@ -1143,11 +1179,15 @@ function showDetail(d, r) {         // de volledige berekening van één station
         `${nl(r.detour_liters, 2)} liter × ${price}${est}`, eur(r.detour_cost)),
     row("Totaal", "tanken + brandstof voor de " + (route ? "omweg" : "rit"), eur(r.total), "sum"),
   ];
+  if (d.time_value > 0) {
+    rows.push(row("Tijd", `${r.time_min} min × ${eur(d.time_value)} per uur`, eur(r.time_cost)));
+    rows.push(row("Totaal inclusief tijd", "waarop de aanrader gekozen wordt", eur(r.effective_total), "sum"));
+  }
   if (r.is_baseline) {
-    rows.push(row("Referentie", route ? "Dit is het station met de kleinste omweg; de besparing van de andere stations is hieraan gemeten."
-      : "Dit is het dichtstbijzijnde station; de besparing van de andere stations is hieraan gemeten.", "—"));
+    rows.push(row("Referentie", route ? "Dit is het goedkoopste station op je route; de besparing van de andere stations is hieraan gemeten."
+      : "Dit is het goedkoopste station vlak bij het dichtstbijzijnde; de besparing van de andere stations is hieraan gemeten.", "—"));
   } else {
-    rows.push(row("Besparing", `${eur(base.total)} (${base.name}, ${route ? "kleinste omweg" : "dichtstbijzijnde"}) − ${eur(r.total)}`, eur(r.saving)));
+    rows.push(row("Besparing", `${eur(base.total)} (${base.name}, referentie) − ${eur(r.total)}`, eur(r.saving)));
   }
   if (route && d.route) {           // de omweg afgezet tegen de referentieroute (snelste route)
     const viaKm = d.route.km + r.km_exact, viaMin = d.route.min + r.minutes;
@@ -1156,7 +1196,7 @@ function showDetail(d, r) {         // de volledige berekening van één station
       `${nl(r.km_exact, 2)} km en ${r.minutes} min extra${est}`,
       `+${nl(r.km_exact, 1)} km`));
   }
-  const extra = route ? r.minutes : r.extra_min;
+  const extra = r.extra_min;   // extra minuten ten opzichte van de referentie
   rows.push(row(route ? "Omweg in tijd" : "Rijtijd",
     route ? `${r.minutes} min en ${nl(r.km_exact, 2)} km extra ten opzichte van de snelste route${est}`
       : `${r.minutes} min heen en terug${r.is_baseline ? "" : `, ${r.extra_min > 0 ? "+" : ""}${r.extra_min} min ten opzichte van ${base.name}`}${est}`,
@@ -1165,7 +1205,7 @@ function showDetail(d, r) {         // de volledige berekening van één station
     rows.push(row("Per extra uur", `${eur(r.saving)} besparing ÷ ${extra} min extra`, eur(r.saving / (extra / 60))));
   rows.push(row("Gegevens", `${r.source_label}${r.address ? ", " + r.address : ""}. ${sourceNote(r).split(" · ")[1]}.`, ""));
   $("detail").replaceChildren(
-    h("h3", null, `${r.rank}. ${r.name}`, r.is_baseline && h("span", { class: "tag" }, route ? "minste omweg" : "dichtstbij")),
+    h("h3", null, `${r.rank}. ${r.name}`, r.is_recommended && h("span", { class: "tag rec" }, "Aanrader"), r.is_baseline && h("span", { class: "tag" }, "referentie")),
     h("table", null, h("tbody", null, rows)),
     h("p", { class: "fine" }, `Verbruik ${using}: ` + (c.explicit ? "opgegeven." : `${c.source ? c.source + ", " : ""}officieel ${nl(c.official, 1)} × praktijkfactor ${nl(c.factor, 1)}.`) +
       " De brandstof voor de omweg is gerekend tegen de prijs van dit station."));
@@ -1189,29 +1229,35 @@ async function drawVia(d, r) {
     : `Rit heen en terug naar ${r.name}: ${nl(v.km, 1)} km, ${v.min} min${est}.`;
 }
 
+function timeLink() {       // opent het instellingenpaneel
+  const a = h("a", { href: "#", class: "inlinelink" }, "aanpassen");
+  a.addEventListener("click", (e) => { e.preventDefault(); $("menubtn").click(); });
+  return a;
+}
+
 function verdictText(d) {
-  const best = d.results[0], base = d.results.find((r) => r.is_baseline);
-  if (!best) return null;
-  if (d.mode === "route") {
-    if (best.is_baseline) {
-      return [`Tank bij ${best.name}.`,
-        `Het station met de kleinste omweg is ook het voordeligst: ${eur(best.total)} voor ${nl(d.fill_liters, 0)} liter, ` +
-        `inclusief de omweg (${best.minutes} min).`];
-    }
-    const perHour = best.minutes > 0 ? ` Dat is ongeveer ${eur(best.saving / (best.minutes / 60))} per extra uur.` : "";
-    const cost = best.minutes > 0 ? `voor ${best.minutes} ${best.minutes === 1 ? "minuut" : "minuten"} omweg` : "zonder noemenswaardige omweg";
-    return [`Tank bij ${best.name}.`,
-      `${eur(best.saving)} goedkoper dan ${base.name} (het station dat het best op je route ligt), ${cost}.${perHour}`];
+  const rec = d.results.find((r) => r.is_recommended) || d.results[0];
+  const base = d.results.find((r) => r.is_baseline);
+  const route = d.mode === "route";
+  const refName = route ? "het goedkoopste station op je route" : "het goedkoopste station vlak bij het dichtstbijzijnde";
+  let sub;
+  if (rec.is_baseline) {
+    sub = `${route ? "Het goedkoopste station op je route" : "Het goedkoopste station dichtbij"} is ook de beste keuze: ` +
+      `${eur(rec.total)} voor ${nl(d.fill_liters, 0)} liter, inclusief ${route ? `de omweg (${rec.minutes} min)` : "de rit heen en terug"}.`;
+  } else {
+    const dm = rec.extra_min;
+    const perHour = dm > 0 && rec.saving > 0 ? ` Dat is ongeveer ${eur(rec.saving / (dm / 60))} per extra uur.` : "";
+    const cost = dm > 0 ? `voor ${dm} ${dm === 1 ? "minuut" : "minuten"} ${route ? "omweg" : "extra rijtijd"}` : "zonder noemenswaardige extra rijtijd";
+    sub = `${eur(rec.saving)} goedkoper dan ${base.name} (${refName}), ${cost}.${perHour}`;
   }
-  if (best.is_baseline) {
-    return [`Tank bij ${best.name}.`,
-      `Het dichtstbijzijnde station is ook het voordeligst: ${eur(best.total)} voor ${nl(d.fill_liters, 0)} liter, ` +
-      `inclusief de rit heen en terug.`];
+  const cheapest = d.results[0];
+  let note = null;
+  if (cheapest !== rec && cheapest.total < rec.total && cheapest.minutes > rec.minutes) {
+    const dm = cheapest.minutes - rec.minutes;
+    note = `${cheapest.name} is ${eur(rec.total - cheapest.total)} goedkoper, maar je rijdt er ${dm} ${dm === 1 ? "minuut" : "minuten"} extra voor. ` +
+      `Bij ${eur(d.time_value)} per uur is dat de moeite niet.`;
   }
-  const perHour = best.extra_min > 0 ? ` Dat is ongeveer ${eur(best.saving / (best.extra_min / 60))} per extra uur.` : "";
-  return [`Tank bij ${best.name}.`,
-    `${eur(best.saving)} goedkoper dan ${base.name} (het dichtstbijzijnde station), ` +
-    `voor ${best.extra_min} minuten extra rijtijd.${perHour}`];
+  return { rec, headline: `Tank bij ${rec.name}.`, sub, note };
 }
 
 function render(d) {
@@ -1231,14 +1277,20 @@ function render(d) {
     return;
   }
 
-  const [headline, sub] = verdictText(d);
-  main.append(h("h2", { class: "verdict" }, headline), h("p", { class: "verdict-sub" }, sub));
+  const v = verdictText(d);
+  main.append(h("div", { class: "verdict-box" },
+    h("div", { class: "verdict-text" },
+      h("span", { class: "tag rec" }, "Aanrader"),
+      h("h2", { class: "verdict" }, v.headline), h("p", { class: "verdict-sub" }, v.sub)),
+    h("div", { class: "verdict-nav" }, navButton(v.rec, "btn primary navbig"))));
+  if (v.note) main.append(h("p", { class: "verdict-note" }, v.note));
 
   const short = (l) => l.split(",").slice(0, 3).join(",");
   main.append(h("ul", { class: "context" },
     h("li", null, "Vertrek: ", h("b", null, short(d.home.label))),
     route && h("li", null, "Bestemming: ", h("b", null, short(d.dest.label))),
     route && h("li", null, "Snelste route: ", h("b", null, `${nl(d.route.km, 0)} km, ${d.route.min} min`), d.any_estimated ? " (geschat)" : ""),
+    h("li", null, "Waarde van je tijd: ", h("b", null, d.time_value > 0 ? `${eur(d.time_value)} per uur` : "uit (alleen op prijs)"), " · ", timeLink()),
     h("li", null, h("b", null, `${nl(d.fill_liters, 0)} liter`),
       route ? ` tanken, zoeken tot ${nl(d.corridor_km, 0)} km naast de route` : ` tanken, zoekstraal ${nl(d.radius_km, 0)} km`)));
 
@@ -1258,8 +1310,8 @@ function render(d) {
   const tips = { Prijs: "euro per liter", Tank: `${nl(d.fill_liters, 0)} liter tanken`, Retour: "kilometers heen en terug naar je vertrekpunt",
     Tijd: "rijtijd heen en terug", Omrit: route ? "brandstofkosten van de omweg" : "brandstofkosten van de rit heen en terug",
     Totaal: "Tank + Omrit", "Extra km": "extra afstand ten opzichte van de snelste route", Omweg: "extra rijtijd ten opzichte van de snelste route",
-    "Extra tijd": "Tijd min de tijd van het dichtstbijzijnde station",
-    Besparing: route ? "Totaal van het station met de kleinste omweg min dit Totaal" : "Totaal van het dichtstbijzijnde station min dit Totaal" };
+    "Extra tijd": "Tijd min de tijd van het snelst bereikbare station",
+    Besparing: "Totaal van de referentie min dit Totaal" };
   const thead = h("thead", null, h("tr", null, ...cols.map(([t, k]) =>
     h("th", { class: k === "l" ? "l" : "", title: tips[t] }, t))));
 
@@ -1272,10 +1324,13 @@ function render(d) {
     }
     prevRank = r.rank;
     const est = r.estimated ? h("span", { title: "geschat; geen route beschikbaar" }, "~") : "";
-    const tr = h("tr", { class: r.rank === 1 ? "best" : "", tabindex: wantMap ? "0" : false },
+    const tr = h("tr", { class: r.is_recommended ? "best" : "", tabindex: wantMap ? "0" : false },
       h("td", { class: "rank" }, String(r.rank)),
       h("td", { class: "l station" },
-        h("span", { class: "sname" }, r.name), r.is_baseline && h("span", { class: "tag" }, route ? "minste omweg" : "dichtstbij"),
+        h("span", { class: "sname" }, r.name),
+        r.is_recommended && h("span", { class: "tag rec" }, "Aanrader"),
+        r.rank === 1 && !r.is_recommended && h("span", { class: "tag cheap" }, "Goedkoopst"),
+        r.is_baseline && h("span", { class: "tag" }, "Referentie"),
         h("span", { class: "sub" }, r.address),
         h("span", { class: "sub src", title: "Uit welke gegevensbron dit station komt" }, sourceNote(r))),
       h("td", { "data-label": "Prijs €/l" }, nl(r.price, 3)),
@@ -1301,9 +1356,11 @@ function render(d) {
   const legend = h("div", { class: "legend" },
     h("p", null, route
       ? "Bedragen in euro. Extra km en omweg zijn het verschil met de snelste route naar je bestemming. Totaal is tanken plus " +
-        "de brandstof voor die omweg. Besparing geldt ten opzichte van het station met de kleinste omweg."
+"de brandstof voor die omweg. De lijst staat op prijs; de aanrader weegt ook de extra rijtijd mee. " +
+        "Besparing geldt ten opzichte van de referentie: het goedkoopste station op je route."
       : "Bedragen in euro. Totaal is tanken plus de brandstof voor de rit heen en terug naar je vertrekpunt. " +
-        "Besparing en extra tijd gelden ten opzichte van het dichtstbijzijnde station."));
+        "De lijst staat op prijs; de aanrader weegt ook de extra rijtijd mee. Besparing en extra tijd gelden ten opzichte van de " +
+        "referentie: het goedkoopste station vlak bij het dichtstbijzijnde."));
   if (d.any_estimated) legend.append(h("p", null, "~ = geschatte afstand en tijd (route niet beschikbaar)."));
   if (d.max_extra_min != null) legend.append(h("p", null,
     `Tijdlimiet: stations met meer dan ${nl(d.max_extra_min, 0)} minuten ${route ? "omweg" : "extra rijtijd"} zijn weggelaten (${d.hidden_by_time_limit}).`));
@@ -1327,7 +1384,7 @@ function render(d) {
   $("main").replaceChildren(main);
   if (wantMap) {
     buildResultMap(d, $("resmap"));
-    selectStation(d, d.results[0]);
+    selectStation(d, d.results.find((r) => r.is_recommended) || d.results[0]);
   }
 }
 

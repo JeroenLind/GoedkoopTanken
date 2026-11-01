@@ -66,13 +66,15 @@ def serialize(out: service.SearchOutput, max_results: int) -> dict:
             "km_to_station": round(r.km_to_station, 1) if r.km_to_station is not None else None,
             "minutes": r.min_round_trip, "extra_min": r.extra_min_vs_baseline,
             "saving": r.saving_vs_baseline, "is_baseline": r.is_baseline,
+            "is_recommended": r.is_recommended, "time_min": r.time_min, "time_cost": r.time_cost, "effective_total": r.effective_total,
             "estimated": r.estimated, "lat": s.lat, "lon": s.lon, "nav": nav,
         }
 
     shown = [row(i, r) for i, r in enumerate(out.results[:max_results], 1)]
-    baseline = out.baseline
-    if baseline is not None and not any(x["is_baseline"] for x in shown):
-        shown.append(row(out.results.index(baseline) + 1, baseline))
+    # De referentie en de aanrader staan er altijd bij, ook als ze buiten de eerste N vallen.
+    for special, flag in ((out.baseline, "is_baseline"), (out.recommended, "is_recommended")):
+        if special is not None and not any(x[flag] for x in shown):
+            shown.append(row(out.results.index(special) + 1, special))
     shown_ranks = {x["rank"] for x in shown}
     # De overige doorgerekende stations: alleen voor als stipjes op de kaart.
     others = [row(i, r) for i, r in enumerate(out.results, 1) if i not in shown_ranks]
@@ -92,6 +94,8 @@ def serialize(out: service.SearchOutput, max_results: int) -> dict:
                         "factor": out.factor, "explicit": out.consumption_explicit,
                         "source": veh.consumption_source if veh and not out.consumption_explicit else ""},
         "fill_liters": out.fill_liters, "radius_km": out.radius_km,
+        "time_value": out.time_value,
+        "near": {"mode": out.near_rule.mode, "max_km": out.near_rule.max_km, "max_min": out.near_rule.max_min},
         "max_extra_min": out.max_extra_min, "hidden_by_time_limit": out.hidden_by_time_limit,
         "total_found": len(out.results), "results": shown,
         "provider_messages": out.provider_messages, "attributions": out.attributions,

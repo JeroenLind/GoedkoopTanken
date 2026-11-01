@@ -55,8 +55,10 @@ Hoe het rekent:
 - De omweg is het verschil met de snelste route: (vertrek, station, bestemming) min (vertrek, bestemming),
   in kilometers en minuten. Alleen die omweg kost extra brandstof; de route zelf rij je toch.
 - Tanken wordt gewaardeerd tegen de prijs van het station, net als bij zoeken rondom een locatie.
-- De referentie voor de besparing is het station met de kleinste omweg (het station dat het best op je
-  route ligt), niet het dichtstbijzijnde.
+- De referentie voor de besparing is het goedkoopste station dat op je route ligt (standaard: omweg minder
+  dan 0,5 km; instelbaar op afstand of tijd). Ligt er geen, dan het station met de kleinste omweg.
+- De aanrader is het station met de laagste kosten inclusief tijd: extra rijtijd telt mee tegen de waarde
+  van je tijd (standaard € 15 per uur, instelbaar; 0 = alleen op prijs).
 - De tijdlimiet (standaard 30 min) geldt voor de omweg zelf. Hij bepaalt ook hoe breed er naast de route
   gezocht wordt: ongeveer 0,4 km per toegestane minuut, tussen 3 en 15 km (zonder limiet 10 km).
   Met `--corridor` stel je dat zelf in.

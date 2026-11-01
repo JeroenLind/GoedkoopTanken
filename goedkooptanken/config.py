@@ -33,6 +33,14 @@ class Config:
     radius_km: float = 20.0
     max_results: int = 10
     max_extra_min: float | None = 30.0  # None = geen limiet
+    # Waarde van je tijd (euro per uur): extra rijtijd telt mee als kosten bij het kiezen van de aanrader.
+    # 0 = alleen op prijs kiezen.
+    time_value: float = 15.0
+    # Wanneer ligt een station "op de route" (of vlak bij het dichtstbijzijnde station)? Het goedkoopste
+    # zo'n station is de referentie. near_mode "distance" kijkt naar extra km, "time" naar extra minuten.
+    near_mode: str = "distance"
+    near_max_km: float = 0.5
+    near_max_min: float = 3.0
     # Per land de bronnen die aan staan, in volgorde van prioriteit: {"NL": ["anwb"], "DE": ["tankerkoenig", "anwb"], ...}
     countries: dict = field(default_factory=default_countries)
     tankerkoenig_key: str | None = None  # in gebruik: omgevingsvariabele wint van het bestand
@@ -85,6 +93,10 @@ def load(path: str | None = None) -> Config:
         radius_km=search.get("radius_km", 20.0),
         max_results=search.get("max_results", 10),
         max_extra_min=search.get("max_extra_min", 30.0) or None,  # 0 = geen limiet
+        time_value=search.get("time_value_eur_per_hour", 15.0),
+        near_mode=search.get("near_mode", "distance") if search.get("near_mode") in NEAR_MODES else "distance",
+        near_max_km=search.get("near_max_km", 0.5),
+        near_max_min=search.get("near_max_min", 3.0),
         countries=clean_countries(prov.get("countries"), strict=False),  # het oude "enabled" telt niet meer
         tankerkoenig_key=os.environ.get("TANKERKOENIG_API_KEY") or key_file,
         tankerkoenig_key_file=key_file,
@@ -117,7 +129,9 @@ def to_dict(cfg: Config) -> dict:
                     "consumption_l_per_100km": cfg.consumption,
                     "real_world_factor": cfg.real_world_factor},
         "search": {"fill_liters": cfg.fill_liters, "radius_km": cfg.radius_km,
-                   "max_results": cfg.max_results, "max_extra_min": cfg.max_extra_min or 0},
+                   "max_results": cfg.max_results, "max_extra_min": cfg.max_extra_min or 0,
+                   "time_value": cfg.time_value, "near_mode": cfg.near_mode,
+                   "near_max_km": cfg.near_max_km, "near_max_min": cfg.near_max_min},
         "providers": {"countries": {c: list(v) for c, v in cfg.countries.items()}, "allow_e10": cfg.allow_e10,
                       "tankerkoenig_key_source": key_source(cfg), "catalog": catalog()},
         "routing": {"enabled": cfg.use_routing, "osrm_url": cfg.osrm_url,
@@ -193,6 +207,15 @@ def _num(value, name, lo, hi, *, optional=False, integer=False):
     return int(number) if integer else number
 
 
+NEAR_MODES = ("distance", "time")
+
+
+def _near_mode(value) -> str:
+    if value not in NEAR_MODES:
+        raise ValueError("Op de route: kies afstand of tijd")
+    return value
+
+
 def _url(value: str, name: str) -> str:
     value = str(value).strip().rstrip("/")
     if not value.startswith(("http://", "https://")):
@@ -245,6 +268,10 @@ def from_dict(d: dict, base: Config | None = None) -> Config:
                          integer=True),
         max_extra_min=_num(srch.get("max_extra_min", base.max_extra_min or 0),
                            "Maximale extra tijd", 0, 600) or None,
+        time_value=_num(srch.get("time_value", base.time_value), "Waarde van je tijd", 0, 500),
+        near_mode=_near_mode(srch.get("near_mode", base.near_mode)),
+        near_max_km=_num(srch.get("near_max_km", base.near_max_km), "Grens op de route (km)", 0, 50),
+        near_max_min=_num(srch.get("near_max_min", base.near_max_min), "Grens op de route (minuten)", 0, 120),
         countries={c: list(v) for c, v in countries.items()},
         allow_e10=bool(prov.get("allow_e10", base.allow_e10)),
         use_routing=bool(rout.get("enabled", base.use_routing)),
@@ -290,6 +317,8 @@ def to_toml(cfg: Config) -> str:
     lines.append(f"real_world_factor = {cfg.real_world_factor!r}")
     lines += ["", "[search]", f"fill_liters = {cfg.fill_liters!r}", f"radius_km = {cfg.radius_km!r}",
               f"max_results = {int(cfg.max_results)}", f"max_extra_min = {(cfg.max_extra_min or 0)!r}",
+              f"time_value_eur_per_hour = {cfg.time_value!r}", f"near_mode = {_s(cfg.near_mode)}",
+              f"near_max_km = {cfg.near_max_km!r}", f"near_max_min = {cfg.near_max_min!r}",
               "", "[providers.countries]",
               *(f"{code} = [" + ", ".join(_s(n) for n in names) + "]" for code, names in cfg.countries.items()),
               "", "[providers.tankerkoenig]", f"api_key = {_s(cfg.tankerkoenig_key_file or '')}",

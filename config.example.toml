@@ -25,6 +25,10 @@ fill_liters = 40                  # hoeveel liter je gemiddeld tankt
 radius_km = 25
 max_results = 10
 max_extra_min = 30                # max. extra rijtijd t.o.v. het dichtstbijzijnde station; 0 = geen limiet
+time_value_eur_per_hour = 15      # wat een uur van je tijd waard is; kiest de aanrader; 0 = alleen op prijs
+near_mode = "distance"            # 'op de route' bepalen op "distance" (afstand) of "time" (tijd)
+near_max_km = 0.5                 # bij "distance": omweg kleiner dan dit aantal km
+near_max_min = 3                  # bij "time": omweg kleiner dan dit aantal minuten
 
 [providers.countries]
 # Per land de bronnen die aan staan. De volgorde is de prioriteit: levert meer dan één bron hetzelfde

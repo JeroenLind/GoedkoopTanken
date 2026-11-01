@@ -93,10 +93,16 @@ class SearchOutput:
     ranked: list = field(default_factory=list)     # alle doorgerekende stations, vóór de tijdlimiet
     route_line: list = field(default_factory=list)  # [(lat, lon), ...] van de snelste route
     searched_areas: list = field(default_factory=list)  # [(lat, lon, straal_km), ...] bij de bronnen opgevraagd
+    time_value: float = 0.0   # waarde van je tijd (euro per uur) waarmee de aanrader is gekozen
+    near_rule: calc.NearRule = field(default_factory=calc.NearRule)  # wat "op de route" is voor de referentie
 
     @property
     def baseline(self) -> Result | None:
         return next((r for r in self.results if r.is_baseline), None)
+
+    @property
+    def recommended(self) -> Result | None:
+        return next((r for r in self.results if r.is_recommended), None)
 
 
 def resolve_home(cfg: Config, lat=None, lon=None, address=None) -> tuple[float, float, str]:
@@ -228,11 +234,12 @@ def search(cfg: Config, params: SearchParams | None = None) -> SearchOutput:
         out.notice = "Geen stations gevonden. Controleer de bronnen (zie meldingen hierboven)."
         return out
 
+    rule = calc.NearRule(cfg.near_mode, cfg.near_max_km, cfg.near_max_min)
     if out.mode == "route":
         ranked = calc.rank_along(stations, out.home, out.dest, line, out.corridor_km, fuel, fill, real, router,
-                                 max_km=out.max_km, too_far=out.too_far)
+                                 max_km=out.max_km, too_far=out.too_far, rule=rule)
     else:
-        ranked = calc.rank(stations, (home_lat, home_lon), fuel, fill, real, router)
+        ranked = calc.rank(stations, (home_lat, home_lon), fuel, fill, real, router, rule=rule)
     out.ranked = ranked
     if not ranked:
         where = f"binnen {out.corridor_km:.0f} km van de route " if out.mode == "route" else ""
@@ -244,6 +251,9 @@ def search(cfg: Config, params: SearchParams | None = None) -> SearchOutput:
         return out
 
     out.results = calc.within_time_limit(ranked, max_extra, absolute=out.mode == "route")
+    calc.mark_recommended(out.results, cfg.time_value, absolute=out.mode == "route")
+    out.time_value = cfg.time_value
+    out.near_rule = rule
     out.hidden_by_time_limit = len(ranked) - len(out.results)
     out.any_estimated = any(r.estimated for r in out.results)
     out.attributions = [
@@ -337,7 +347,7 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
         nr = result_rank.get(k)
         if nr is None:
             screen = None
-        elif max_results is None or nr <= max_results or (k in ranked and ranked[k].is_baseline):
+        elif max_results is None or nr <= max_results or (k in ranked and (ranked[k].is_baseline or ranked[k].is_recommended)):
             screen = "tabel en kaart"
         else:
             screen = "alleen kaart (grijs stipje)"
@@ -356,7 +366,9 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
                 "extra_min_vs_nearest": None if route else r.extra_min_vs_baseline,
                 "detour_cost": r.detour_cost, "total": r.total,
                 "saving_vs_reference": r.saving_vs_baseline,
-                "is_reference": r.is_baseline, "distance_estimated": r.estimated,
+                "is_reference": r.is_baseline, "is_recommended": r.is_recommended,
+                "time_min": r.time_min, "time_cost": r.time_cost, "effective_total": r.effective_total,
+                "distance_estimated": r.estimated,
                 **({"km_to_station": round(r.km_to_station, 2)} if route and r.km_to_station is not None else {}),
             }
         rows.append(row)
@@ -377,6 +389,8 @@ def export_data(out: SearchOutput, max_results: int | None = None) -> dict:
         "program": "Goedkoop tanken",
         "query": {
             "mode": out.mode, "reference_route": "fastest" if route else None,
+            "time_value_eur_per_hour": out.time_value,
+            "near": {"mode": out.near_rule.mode, "max_km": out.near_rule.max_km, "max_min": out.near_rule.max_min},
             "start": {"lat": out.home[0], "lon": out.home[1], "label": out.home_label},
             "destination": ({"lat": out.dest[0], "lon": out.dest[1], "label": out.dest_label} if out.dest else None),
             "fuel": out.fuel, "fill_liters": out.fill_liters,

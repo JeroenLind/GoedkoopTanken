@@ -189,7 +189,7 @@ sequenceDiagram
     C->>C: alleen stations binnen de zoekbreedte, voorselectie
     C->>R: detours(A, B, kandidaten)
     R-->>C: extra kilometers en minuten per station
-    C-->>S: resultaten, referentie is de kleinste omweg
+    C-->>S: resultaten, aanrader en referentie (D-27)
     S->>S: tijdlimiet geldt voor de omweg zelf
 ```
 
@@ -363,7 +363,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 ### D-4. Kostenmodel: totaal en referentie
 
 - **Besluit door:** Jeroen (wens), Claude (uitwerking). **Eisen:** FR-1, FR-6.
-- **Keuze:** `totaal = liters × prijs + omrit`, waarbij de brandstof voor de omrit tegen de prijs van het station zelf wordt gerekend. De besparing is relatief aan het dichtstbijzijnde station (rond een punt) of het station met de kleinste omweg (langs een route).
+- **Keuze:** `totaal = liters × prijs + omrit`, waarbij de brandstof voor de omrit tegen de prijs van het station zelf wordt gerekend. De besparing is relatief aan de referentie; die volgt uit D-27.
 - **Reden:** dat is wat je zonder zoeken zou doen. De brandstof voor de rit wordt tegen de prijs van het station zelf gerekend; het verschil met je eigen tankinhoud is verwaarloosbaar.
 - **Afgewezen:** sorteren op literprijs (negeert de omrit, het hele doel van de app) en besparing ten opzichte van een gemiddelde (minder herkenbaar).
 
@@ -502,7 +502,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 ### D-24. Maximale afstand als rijafstand vanaf het vertrek, vóór de referentie
 
 - **Besluit door:** Jeroen (wens), Claude (uitwerking). **Eisen:** FR-12.
-- **Keuze:** alleen bij een route. De rijafstand van het vertrek naar het station komt uit dezelfde tabelaanvraag als de omweg (D-7), dus zonder extra aanvraag. Stations boven de grens vallen af, en pas daarna wordt de referentie (kleinste omweg) bepaald.
+- **Keuze:** alleen bij een route. De rijafstand van het vertrek naar het station komt uit dezelfde tabelaanvraag als de omweg (D-7), dus zonder extra aanvraag. Stations boven de grens vallen af, en pas daarna worden de referentie en de aanrader bepaald (D-27).
 - **Reden:** met een bijna lege tank telt of je het station haalt, niet hoeveel je omrijdt. De referentie moet haalbaar zijn, anders is de besparing ten opzichte van een station dat je niet haalt misleidend. Zonder routeserver geldt de geschatte afstand (1,3 × hemelsbreed).
 - **Afgewezen:** de grens op de omweg zetten (dat is de tijdlimiet, FR-4, en zegt niets over het bereiken van het station); de grens pas na de referentie toepassen (referentie kan onhaalbaar zijn).
 - **Zichtbaar:** de uitkomst en de export noemen hoeveel stations te ver weg lagen, en de export geeft per station de status "te ver weg" en `km_to_station`. Zonder haalbaar station staat er een melding.
@@ -522,6 +522,13 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Afgewezen / uitgesteld:** een webfont (Nunito) zoals in het ontwerp: dat vraagt een externe aanvraag en de Content-Security-Policy staat die niet toe (D-14), dus de interface gebruikt de systeemletter. Een hernoeming alleen aan de buitenkant: Jeroen wilde de naam "overal", dus ook het pakket (`goedkooptanken`, zonder streepje omdat Python dat niet toestaat) en het commando zijn hernoemd. De oude naam `fuelfinder` werkt niet meer; er is geen overgangsalias gemaakt (niet besproken).
 - **Indeling:** vanaf 1200 px breed zet CSS de resultaten in twee kolommen: de lijst links en een rechterkolom (`.side`: kaart, kaartnotitie, detail) die blijft staan bij het scrollen; de pagina is dan maximaal 1440 px breed zodat de tabel niet zijwaarts hoeft te scrollen. Daaronder (en op de telefoon, D-18) blijft de volgorde zoals eerst. Alleen CSS en één omhullende `div`; geen nieuwe bouwstap (D-15).
 
+### D-27. Aanrader met tijdwaarde en referentie op de route
+
+- **Besluit door:** Jeroen (regels en standaardwaarden), Claude (uitwerking). **Eisen:** FR-41, FR-42, FR-43, FR-44, FR-45, FR-46.
+- **Keuze:** `calc.mark_recommended` rekent per station `tijd = extra minuten × waarde/60` en `effective_total = totaal + tijd`; het station met de laagste `effective_total` (gelijk: laagste totaal) is de aanrader (`is_recommended`). Extra minuten zijn de omweg bij een route, en bij zoeken rondom een locatie het verschil met het snelste station. `calc.pick_reference` kiest de referentie: het goedkoopste station binnen de `NearRule` (modus `distance`: extra km ≤ grens, standaard 0,5; modus `time`: extra minuten ≤ grens, standaard 3), en anders het station met de kleinste omweg. Bij een route meet de regel de absolute omweg, rondom een locatie het verschil met het dichtstbijzijnde station. De instellingen staan in `[search]` (`time_value_eur_per_hour`, `near_mode`, `near_max_km`, `near_max_min`) en in het instellingenscherm. De lijst blijft op totaal gesorteerd; de interface markeert de aanrader groen (ook op de kaart) en toont in het grote resultaat de knop Navigeer. Het blok noemt het goedkoopste station als dat niet de aanrader is. Export en API bevatten `is_recommended`, `time_min`, `time_cost`, `effective_total` en de gebruikte instellingen.
+- **Reden:** in de berekening van 31 oktober was het goedkoopste station maar 3 cent goedkoper dan het tweede, voor 5 minuten extra rijden; dat doet niemand. Een waarde per uur laat de afweging vanzelf meewegen. De referentie moet een station zijn dat je echt zou kiezen als je niets wilt omrijden: het goedkoopste station op de route, niet het station met de minste kilometers.
+- **Afgewezen:** een minimale besparing als drempel (Jeroen wil dat niet); de lijst op aanrader sorteren (Jeroen: op prijs gesorteerd houden). De standaard 0,5 km en 3 minuten komen van Jeroen; de keuze voor afstand als standaard is niet onderbouwd met metingen. De routeserver geeft soms rare omwegminuten (0 km maar 5 minuten); dat is de reden dat afstand de standaard is.
+
 ## 9. Traceerbaarheid: eisen naar ontwerp
 
 | Eis | Ontwerpkeuze | Modules en tests |
@@ -531,8 +538,9 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-3 Kenteken en verbruik | D-1 | `vehicle.py`; `test_all.py` |
 | FR-4 Tijdlimiet | D-4, D-8 | `calc.within_time_limit`; `test_all.py`, `test_route.py` |
 | FR-5 Routering en adressen | D-6 | `routing.py`, `geo.py`; `test_all.py` |
-| FR-6 Resultaat en besparing | D-4 | `calc.py`, `web.serialize`; `test_web.py` |
+| FR-6 Resultaat en besparing | D-4, D-27 | `calc.py`, `web.serialize`; `test_web.py` |
 | FR-7 Prijscache | D-9, D-10 | `cache.py`; `test_cache.py` |
+| FR-41 t/m FR-46 Aanrader, tijdwaarde, referentie en Navigeer | D-27 | `calc.mark_recommended`, `calc.pick_reference`, `config.py`, `service.py`, `web.serialize`, `static/index.html`; `test_recommend.py`, `test_route.py` |
 | FR-8, FR-9, FR-38 Langs een route | D-7, D-8 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |
 | FR-10 Bestemming op kaart | D-16 | `static/index.html`; handmatig en browsertest |
 | FR-11 Omdraaien | D-15 | `static/index.html` |
