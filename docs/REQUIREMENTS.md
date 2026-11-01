@@ -107,6 +107,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | --- | --- | --- | --- |
 | FR-35 | De app heet overal "Goedkoop tanken", niet "fuelfinder": in de interface (tabbladtitel, kop, meldingen), de export, de documentatie én technisch (pakket `goedkooptanken`, commando `python -m goedkooptanken web`, `GOEDKOOPTANKEN_CONTACT`, User-Agent). | Jeroen | Klaar |
 | FR-36 | Het pictogram is een groene afgeronde tegel met een witte brandstofdruppel en een pijl omlaag. De huisstijl is groen (#1D9E75, voor tekst en knoppen donkerder: #0F7A58), marineblauw (#1E3A5F) en oranje (#F28C28, alleen als accent). Het pictogram staat in de interface, als tabbladpictogram en als pictogram van de add-on. | Jeroen | Klaar |
+| FR-48 | De app heeft een uitgebreid helpmenu (knop "Help" in de kop) voor nieuwe gebruikers: wat de app doet, snel starten, het bedoelde gebruik van zoeken rondom mij en langs een route, het lezen van het resultaat, hoe er gerekend wordt, alle instellingen met hun effect, tips bij problemen en privacy. Elke instelling in het menu staat in de help. | Jeroen | Klaar |
 | FR-37 | Op een breed scherm staat de lijst met stations links en de kaart met het detail van het gekozen station rechts, zoals in de mockup; op een telefoon blijft het één kolom. | Jeroen | Klaar |
 
 ## 4. Niet-functionele eisen

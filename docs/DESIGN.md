@@ -529,6 +529,14 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Reden:** in de berekening van 31 oktober was het goedkoopste station maar 3 cent goedkoper dan het tweede, voor 5 minuten extra rijden; dat doet niemand. Een waarde per uur laat de afweging vanzelf meewegen. De referentie moet een station zijn dat je echt zou kiezen als je niets wilt omrijden: het goedkoopste station op de route, niet het station met de minste kilometers.
 - **Afgewezen:** een minimale besparing als drempel (Jeroen wil dat niet); de lijst op aanrader sorteren (Jeroen: op prijs gesorteerd houden). De standaard 0,5 km en 3 minuten komen van Jeroen; de keuze voor afstand als standaard is niet onderbouwd met metingen. De routeserver geeft soms rare omwegminuten (0 km maar 5 minuten); dat is de reden dat afstand de standaard is.
 
+### D-28. Helpvenster in de pagina zelf
+
+- **Besluit door:** Claude (uitwerking van de wens van Jeroen). **Eisen:** FR-48.
+- **Keuze:** de helptekst staat als vaste HTML in een `<dialog id="helpdlg">` in `index.html`, geopend met de knop Help in de kop (`showModal`, dus Escape en focusval werken vanzelf). Bovenaan staat een inhoudsopgave met sprongen naar de kopjes. De tekst is Nederlands en gebruikt dezelfde namen als de interface. Op een telefoon vult het venster het scherm (zoals de kaartdialoog, D-16).
+- **Reden:** geen nieuwe bestanden, geen externe aanvraag (de Content-Security-Policy, D-14) en geen bouwstap (D-15); de tekst reist mee met de interface.
+- **Afgewezen:** een aparte helppagina of Markdown-bestand (extra route en weergave nodig, niet besproken); uitleg alleen als tooltips (te kort voor het bedoelde gebruik).
+- **Onderhoud:** `test_web.test_help_covers_every_setting_and_both_modes` controleert dat de inhoudsopgave klopt en dat elk label in het instellingenmenu in de help voorkomt. Wijzigt een instelling, dan wijzigt de help mee.
+
 ## 9. Traceerbaarheid: eisen naar ontwerp
 
 | Eis | Ontwerpkeuze | Modules en tests |
@@ -540,6 +548,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-5 Routering en adressen | D-6 | `routing.py`, `geo.py`; `test_all.py` |
 | FR-6 Resultaat en besparing | D-4, D-27 | `calc.py`, `web.serialize`; `test_web.py` |
 | FR-7 Prijscache | D-9, D-10 | `cache.py`; `test_cache.py` |
+| FR-48 Helpmenu | D-28 | `static/index.html` (`#helpdlg`); `test_web.py` |
 | FR-41 t/m FR-46 Aanrader, tijdwaarde, referentie en Navigeer | D-27 | `calc.mark_recommended`, `calc.pick_reference`, `config.py`, `service.py`, `web.serialize`, `static/index.html`; `test_recommend.py`, `test_route.py` |
 | FR-8, FR-9, FR-38 Langs een route | D-7, D-8 | `service._plan_route`, `calc.rank_along`, `routing.detours`; `test_route.py` |
 | FR-10 Bestemming op kaart | D-16 | `static/index.html`; handmatig en browsertest |

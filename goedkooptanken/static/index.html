@@ -50,6 +50,26 @@
   .menubtn .dot { position: absolute; top: 5px; right: 5px; width: 9px; height: 9px; border-radius: 50%;
     background: var(--loss); }
   .logo { width: 36px; height: 36px; border-radius: 9px; flex: none; }
+  .helpbtn { margin-left: auto; min-height: 44px; }
+  #helpdlg { width: min(780px, 96vw); height: min(760px, 92vh); padding: 0; border: 1px solid var(--ink); border-radius: 12px;
+    background: var(--paper); color: var(--ink); }
+  #helpdlg[open] { display: flex; flex-direction: column; }
+  #helpdlg::backdrop { background: rgba(10, 16, 22, .55); }
+  .helphead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  .helphead strong { font: 700 1.3rem/1 var(--display); }
+  .helpbody { overflow-y: auto; padding: 4px 20px 24px; flex: 1; line-height: 1.5; }
+  .helpbody h2 { font: 700 1.3rem/1.2 var(--display); margin: 22px 0 6px; }
+  .helpbody h3 { font: 700 1.05rem/1.2 var(--display); margin: 18px 0 4px; }
+  .helpbody section { scroll-margin-top: 8px; }
+  .helpbody ul, .helpbody ol { padding-left: 1.3em; margin: 6px 0; }
+  .helpbody li { margin: 4px 0; }
+  .helpbody dl { margin: 4px 0; }
+  .helpbody dt { font-weight: 700; margin-top: 8px; }
+  .helpbody dd { margin: 2px 0 0; color: var(--ink-soft); }
+  .helptoc { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+  .helptoc a { border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; color: var(--ink); text-decoration: none; min-height: 32px; }
+  .helptoc a:hover { background: var(--surface); }
+  @media (max-width: 700px) { #helpdlg { width: 100vw; height: 100dvh; max-width: none; max-height: none; border-radius: 0; } }
   .brand { font: 800 1.6rem/1 var(--display); letter-spacing: -.01em; margin: 0; color: var(--ink); }
 
   /* ---------- altijd zichtbaar: locatie, liters, bereken ---------- */
@@ -313,6 +333,7 @@
     </button>
     <img class="logo" src="icon.svg" alt="" width="36" height="36">
     <h1 class="brand">Goedkoop tanken</h1>
+    <button type="button" class="btn helpbtn" id="helpbtn" aria-haspopup="dialog">Help</button>
   </header>
 
   <form class="bar" id="bar" autocomplete="off">
@@ -479,6 +500,191 @@
   </div>
 </aside>
 
+<dialog id="helpdlg" aria-labelledby="helptitle">
+  <div class="helphead"><strong id="helptitle">Help</strong>
+    <button type="button" class="btn" id="helpclose">Sluiten</button></div>
+  <div class="helpbody" id="helpbody" tabindex="-1">
+    <nav class="helptoc" aria-label="Onderwerpen">
+      <a href="#h-wat">Wat doet de app?</a>
+      <a href="#h-start">Snel starten</a>
+      <a href="#h-around">Zoeken rondom mij</a>
+      <a href="#h-route">Zoeken langs een route</a>
+      <a href="#h-result">Het resultaat lezen</a>
+      <a href="#h-calc">Zo wordt gerekend</a>
+      <a href="#h-settings">Alle instellingen</a>
+      <a href="#h-tips">Tips en problemen</a>
+      <a href="#h-privacy">Privacy</a>
+    </nav>
+
+    <section id="h-wat"><h2>Wat doet de app?</h2>
+      <p>Goedkoop tanken zoekt het station waar tanken je in totaal het minst kost. Een lage literprijs alleen is niet genoeg:
+        het station kan ver uit de buurt liggen. De app telt daarom de brandstof van de omrit en de tijd die je extra rijdt mee,
+        en vergelijkt stations in Nederland, Duitsland en België.</p>
+      <p>De app geeft één <b>aanrader</b>: het station dat na al die kosten het voordeligst is. Daarnaast zie je de hele lijst,
+        op prijs gesorteerd, zodat je zelf kunt kiezen.</p>
+    </section>
+
+    <section id="h-start"><h2>Snel starten</h2>
+      <ol>
+        <li>Open het menu (de knop met drie streepjes linksboven) en vul bij <b>Thuis</b> je adres in. Kies <b>Zoek</b> en daarna <b>Instellingen opslaan</b>.</li>
+        <li>Vul bij <b>Auto</b> je kenteken in en kies <b>Opzoeken</b>. Brandstof en verbruik komen dan uit de RDW-gegevens. Je kunt ze ook zelf invullen.</li>
+        <li>Wil je ook in Duitsland zoeken? Vul bij <b>Bronnen</b> een Tankerkönig-sleutel in (zie “Alle instellingen”).</li>
+        <li>Kies bovenaan <b>Rondom mij</b> of <b>Langs een route</b>, controleer het aantal liters en kies <b>Bereken</b>.</li>
+      </ol>
+    </section>
+
+    <section id="h-around"><h2>Zoeken rondom mij</h2>
+      <p><b>Wanneer gebruik je dit?</b> Je zit in of bij een plaats en wilt weten waar je het voordeligst tankt, bijvoorbeeld
+        als je niet naar een bepaalde bestemming onderweg bent.</p>
+      <ul>
+        <li><b>Vertrekpunt.</b> Kies <b>Mijn locatie</b> (de browser of de telefoon-tracker in Home Assistant bepaalt waar je bent),
+          kies <b>Thuis</b>, of typ een adres of plaats.</li>
+        <li><b>Liters tanken.</b> Hoeveel liter je gaat tanken. Dit bepaalt hoeveel een verschil in literprijs uitmaakt.</li>
+        <li><b>Bereken.</b> De app zoekt stations binnen de zoekstraal en berekent per station de rit heen en terug.</li>
+      </ul>
+      <p><b>Hoe wordt vergeleken?</b> Het dichtstbijzijnde station is het uitgangspunt en staat altijd in de lijst. Wat je extra rijdt
+        is het verschil met dat station, dus de rit heen en terug naar een station verder weg, minus die naar het dichtstbijzijnde.
+        De <b>max. extra tijd</b> werkt ook zo: stations waarvoor je meer extra minuten kwijt bent, vallen af.</p>
+      <p><b>Voorbeeld.</b> Het dichtstbijzijnde station kost € 2,20 per liter. Een station 8 minuten verder rijden is 8 cent per liter goedkoper.
+        Bij 40 liter scheelt dat € 3,20 aan brandstof, maar de omrit kost ook brandstof en 8 minuten van je tijd. Of dat de moeite
+        is, zie je direct in het resultaat.</p>
+    </section>
+
+    <section id="h-route"><h2>Zoeken langs een route</h2>
+      <p><b>Wanneer gebruik je dit?</b> Je rijdt van A naar B, bijvoorbeeld van huis naar werk, en wilt onderweg tanken.
+        Alleen de omweg telt als extra: de route zelf rijd je toch.</p>
+      <ul>
+        <li><b>Vertrek en bestemming.</b> Typ een adres, kies een <b>vast adres</b> uit de keuzelijst, of kies de plek met <b>Kaart</b>.
+          Laat je de bestemming leeg, dan gebruikt de app het vaste adres “Werk” (als je dat hebt ingesteld).</li>
+        <li><b>Omdraaien.</b> Wisselt vertrek en bestemming om, handig voor de terugweg.</li>
+        <li><b>Max. afstand (km).</b> Alleen bij een route. Heb je een bijna lege tank, vul dan in hoe ver je nog kunt rijden:
+          stations verder dan dat (gemeten vanaf je vertrek) vallen af. Leeg betekent geen limiet.</li>
+      </ul>
+      <p><b>Hoe wordt vergeleken?</b> De omweg is het verschil tussen de route via het station en de snelste route zonder omweg,
+        in kilometers en minuten. Alleen die omweg kost extra brandstof en tijd. De app zoekt naast de route; hoe breed hangt af van de
+        <b>max. extra tijd</b> (ongeveer 0,4 km per toegestane minuut, tussen 3 en 15 km, zonder limiet 10 km).</p>
+      <p><b>Referentie.</b> Het goedkoopste station dat “op de route” ligt (standaard minder dan 0,5 km omweg) is de referentie. Je besparing
+        wordt daarmee vergeleken. Zie bij “Alle instellingen” hoe je dat aanpast.</p>
+    </section>
+
+    <section id="h-result"><h2>Het resultaat lezen</h2>
+      <ul>
+        <li><b>Groot blok bovenaan.</b> Hier staat de <span class="tag rec">Aanrader</span> met de naam, prijs per liter, totaal, omweg en
+          besparing. <b>Navigeer</b> opent Google Maps, Apple Maps of Waze. Bij een route navigeer je eerst naar het station en daarna
+          door naar je bestemming (Waze gaat alleen naar het station).</li>
+        <li><b>Goedkoopst-melding.</b> Is een ander station goedkoper maar kost het veel extra tijd, dan staat er hoeveel goedkoper het is
+          en hoeveel minuten extra je daarvoor rijdt. Die afweging maakt de app met de waarde van je tijd.</li>
+        <li><b>De lijst.</b> Altijd gesorteerd op totaalprijs. De groene regel is de aanrader en staat dus niet altijd bovenaan.
+          Labels: <span class="tag rec">Aanrader</span>, <span class="tag cheap">Goedkoopst</span> (laagste totaal, als dat niet de aanrader is)
+          en <span class="tag">Referentie</span> (het station waarmee de besparing is vergeleken).</li>
+        <li><b>De kaart.</b> Toont de stations; groen is de aanrader. Kies een station in de lijst of op de kaart om het detail te zien.</li>
+        <li><b>Het detail.</b> Per station de berekening: prijs, tankkosten, verbruik, omrit, extra tijd, tijdkosten, totaal inclusief tijd
+          en besparing.</li>
+        <li><b>~ (tilde).</b> Een waarde met ~ is geschat, omdat de routeserver niet te bereiken was.</li>
+        <li><b>Meldingen onderaan.</b> Welke bronnen zijn gebruikt, of er oude prijzen uit de cache komen (met een knop <b>Prijzen vernieuwen</b>)
+          en hoeveel stations zijn weggelaten door de tijdlimiet of de maximale afstand.</li>
+      </ul>
+    </section>
+
+    <section id="h-calc"><h2>Zo wordt gerekend</h2>
+      <ul>
+        <li><b>Tankkosten</b> = liters × prijs per liter van het station.</li>
+        <li><b>Omrit</b> = de brandstof voor de extra kilometers, tegen de prijs van dat station.
+          Het verbruik is het officiële verbruik van je auto maal de praktijkfactor (standaard 1,2).</li>
+        <li><b>Totaal</b> = tankkosten + omrit.</li>
+        <li><b>Tijdkosten</b> = extra minuten × waarde van je tijd per uur / 60. Bij € 15 per uur kosten 10 extra minuten € 2,50.</li>
+        <li><b>Totaal inclusief tijd</b> = totaal + tijdkosten. Het station met het laagste bedrag is de aanrader.</li>
+        <li><b>Besparing</b> = totaal van de referentie min totaal van het station.</li>
+      </ul>
+    </section>
+
+    <section id="h-settings"><h2>Alle instellingen</h2>
+      <p>Open het menu met de knop linksboven. Wijzigingen werken direct door bij <b>Bereken</b>. Kies <b>Instellingen opslaan</b>
+        om ze te bewaren. Twee keuzes gelden alleen voor deze browser en worden daar apart bewaard: “Locatie opzoeken bij openen”
+        en “Kaart bij de resultaten tonen”.</p>
+
+      <h3>Thuis</h3>
+      <dl>
+        <dt>Adres en Zoek</dt><dd>Je thuisadres. De knop <b>Thuis</b> bij het zoeken gebruikt dit adres, en de app valt erop terug als je locatie
+          niet te bepalen is. Het adres staat ook in de keuzelijst met bestemmingen.</dd>
+        <dt>Telefoon-tracker in Home Assistant</dt><dd>Alleen zichtbaar in de Home Assistant-add-on. <b>Mijn locatie</b> gebruikt dan de laatst bekende
+          plek van die tracker en valt terug op de browser als dat niet lukt.</dd>
+        <dt>Locatie opzoeken bij openen</dt><dd>Bepaalt je locatie direct bij het openen van de app, zodat je alleen nog op Bereken hoeft te klikken.</dd>
+      </dl>
+
+      <h3>Vaste adressen</h3>
+      <dl>
+        <dt>Naam, adres, Zoek, Kies op kaart</dt><dd>Plekken die je vaak als bestemming gebruikt, zoals Werk, school of familie. Typ het adres en kies
+          <b>Zoek</b>, of kies de plek op de kaart. De naam <b>Werk</b> is de standaardbestemming als je de bestemming leeg laat.
+          Met <b>Verwijder</b> haal je een adres weg.</dd>
+      </dl>
+
+      <h3>Auto</h3>
+      <dl>
+        <dt>Kenteken</dt><dd>De app haalt brandstof en officieel verbruik op bij de RDW (Nederlandse kentekens).</dd>
+        <dt>Brandstof</dt><dd>Automatisch via het kenteken, of kies zelf Benzine 95, Benzine 98, Diesel of LPG. Dit bepaalt welke prijzen worden vergeleken.</dd>
+        <dt>Eigen verbruik (l/100 km)</dt><dd>Overschrijft het verbruik uit het kenteken. Dit bedrag wordt niet gecorrigeerd met de praktijkfactor.</dd>
+        <dt>Praktijkfactor</dt><dd>Verhoogt het officiële verbruik tot een realistisch praktijkverbruik (standaard 1,2). Een hoger verbruik maakt een omrit duurder.</dd>
+      </dl>
+
+      <h3>Zoeken</h3>
+      <dl>
+        <dt>Kaart bij de resultaten tonen</dt><dd>Zet de kaart onder of naast de resultaten aan of uit. De kaartbeelden komen van openstreetmap.org.</dd>
+        <dt>Zoekstraal (km)</dt><dd>Alleen bij zoeken rondom mij: tot hoe ver de app stations zoekt (standaard 20 km). Een grotere straal kost meer rekentijd.</dd>
+        <dt>Max. extra tijd (min)</dt><dd>De grootste extra rijtijd die je wilt accepteren (standaard 30 min). Rondom mij is dat ten opzichte van het dichtstbijzijnde
+          station; langs een route is het de omweg zelf, en het bepaalt ook hoe breed er naast de route gezocht wordt. 0 = geen limiet.</dd>
+        <dt>Aantal resultaten</dt><dd>Hoeveel stations in de lijst staan (standaard 10). De aanrader en de referentie staan er altijd in.</dd>
+        <dt>Waarde van je tijd (euro per uur)</dt><dd>Wat een uur extra rijden je waard is (standaard € 15). Een hoger bedrag kiest eerder een station dichtbij,
+          een lager bedrag eerder het goedkoopste. Bij 0 kiest de app alleen op prijs.</dd>
+        <dt>Wanneer ligt een station op de route?</dt><dd>Bepaalt welk station de referentie is. Kies <b>Op afstand</b> (omweg minder dan een aantal kilometers,
+          standaard 0,5) of <b>Op tijd</b> (omweg minder dan een aantal minuten, standaard 3); beide grenzen kun je aanpassen.
+          Het goedkoopste station binnen de grens wordt de referentie. Ligt er geen binnen de grens, dan is het station met de kleinste omweg de referentie.
+          Afstand is stabieler, want de routeserver geeft soms vreemde omwegminuten. Rondom mij telt de extra rit ten opzichte van het dichtstbijzijnde station.</dd>
+      </dl>
+
+      <h3>Bronnen en Landen</h3>
+      <dl>
+        <dt>Bronnen</dt><dd>De lijst met prijsbronnen, met status en een testknop. <b>ANWB Onderweg</b> levert Nederland en België (geen officiële, gedocumenteerde dienst, dus
+          die kan zonder waarschuwing wijzigen). <b>Tankerkönig</b> levert Duitsland en heeft een eigen gratis API-sleutel nodig.</dd>
+        <dt>Landen</dt><dd>Kies per land welke bronnen aan staan. Staan er meer aan, dan bepaalt de volgorde de prioriteit: levert meer dan één bron hetzelfde station
+          (binnen 75 m), dan wint de bovenste. Een land zonder bron wordt niet doorzocht en geeft een waarschuwing als het in het zoekgebied ligt.</dd>
+        <dt>Tankerkönig API-key</dt><dd>Vraag de sleutel gratis aan bij Tankerkönig en plak hem hier. Hij wordt nooit teruggetoond.</dd>
+        <dt>E10 meenemen bij Duitse prijzen</dt><dd>In Duitsland is E10 de gewone Benzine 95. Staat dit uit, dan telt alleen E5.</dd>
+      </dl>
+
+      <h3>Cache</h3>
+      <dl>
+        <dt>Opgehaalde prijzen lokaal bewaren</dt><dd>Houdt prijzen bij, zodat een tweede berekening snel is en de app oude prijzen kan tonen als een bron uitvalt.</dd>
+        <dt>Maximale leeftijd (uur)</dt><dd>Hoe lang bewaarde prijzen worden gebruikt (standaard 12 uur). Daarna haalt de app ze opnieuw op.</dd>
+        <dt>Cache wissen</dt><dd>Verwijdert alle bewaarde prijzen.</dd>
+      </dl>
+
+      <h3>Routes</h3>
+      <dl>
+        <dt>Echte rijafstand en rijtijd gebruiken (OSRM)</dt><dd>Afstanden en rijtijden komen van een routeserver. Staat dit uit, of is de server niet bereikbaar, dan schat de app
+          (met ~) en wordt de omrit minder nauwkeurig.</dd>
+        <dt>OSRM-server</dt><dd>Het adres van de routeserver. De standaard is een gratis openbare server; houd het gebruik beleefd.</dd>
+      </dl>
+    </section>
+
+    <section id="h-tips"><h2>Tips en problemen</h2>
+      <ul>
+        <li><b>Het goedkoopste station is niet de aanrader.</b> Dat klopt: het kost te veel extra tijd. Zet de waarde van je tijd op 0 als je puur op prijs wilt kiezen.</li>
+        <li><b>Geen resultaten.</b> Vergroot de zoekstraal of de max. extra tijd, controleer of er bij Landen een bron aan staat voor het land, en test de bron bij Bronnen.</li>
+        <li><b>Duitse stations ontbreken.</b> Vul een Tankerkönig-sleutel in en zet de bron aan voor Duitsland.</li>
+        <li><b>Oude prijzen.</b> Valt een bron uit, dan toont de app bewaarde prijzen met een melding. Kies <b>Prijzen vernieuwen</b> om het opnieuw te proberen.</li>
+        <li><b>Mijn locatie werkt niet.</b> Sta locatiebepaling toe in je browser, kies een tracker in de instellingen, of typ een adres.</li>
+        <li><b>Terugrijden.</b> Gebruik <b>Omdraaien</b> bij Langs een route.</li>
+      </ul>
+    </section>
+
+    <section id="h-privacy"><h2>Privacy</h2>
+      <p>Je locatie gaat alleen naar de diensten die nodig zijn om te rekenen: de prijsbronnen (ANWB, Tankerkönig), de routeserver, de adreszoeker
+        (Nominatim) en de kaarttegels van OpenStreetMap. Je Tankerkönig-sleutel wordt nooit getoond. Home Assistant wordt alleen gelezen.</p>
+    </section>
+  </div>
+</dialog>
+
 <dialog id="mapdlg" aria-labelledby="maptitle">
   <div class="maphead"><strong id="maptitle">Kies je bestemming op de kaart</strong>
     <button type="button" class="btn" id="mapclose">Sluiten</button></div>
@@ -528,6 +734,17 @@ const store = {                              // alleen voor kleine voorkeuren va
   get(k, d) { try { const v = localStorage.getItem("ff." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem("ff." + k, JSON.stringify(v)); } catch { /* geen opslag beschikbaar */ } },
 };
+
+/* ================= help ================= */
+const helpdlg = $("helpdlg");
+$("helpbtn").addEventListener("click", () => { helpdlg.showModal(); $("helpbody").scrollTop = 0; $("helpbody").focus({ preventScroll: true }); });
+$("helpclose").addEventListener("click", () => helpdlg.close());
+helpdlg.addEventListener("click", (e) => { if (e.target === helpdlg) helpdlg.close(); });
+document.querySelectorAll(".helptoc a").forEach((a) => a.addEventListener("click", (e) => {
+  e.preventDefault();
+  const target = document.getElementById(a.getAttribute("href").slice(1));
+  if (target) { target.scrollIntoView({ block: "start" }); target.setAttribute("tabindex", "-1"); target.focus({ preventScroll: true }); }
+}));
 
 /* ================= menu (uitschuifpaneel) ================= */
 const drawer = $("drawer"), scrim = $("scrim"), menubtn = $("menubtn");

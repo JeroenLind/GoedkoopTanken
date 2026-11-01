@@ -2,6 +2,7 @@
 
 import http.client
 import json
+import re
 import socket
 import tempfile
 import threading
@@ -132,6 +133,23 @@ class WebTests(unittest.TestCase):
         self.assertIn("<title>Goedkoop tanken</title>", body)
         self.assertNotIn("fuel" + "finder", body.lower())
         self.assertIn("default-src 'self'", resp.getheader("Content-Security-Policy"))
+
+    def test_help_covers_every_setting_and_both_modes(self):
+        _, body, _ = self.call("GET", "/")
+        self.assertIn('id="helpdlg"', body)
+        help_html = body[body.index('id="helpdlg"'):body.index('id="mapdlg"')]
+        for href in re.findall(r'<a href="#(h-[a-z]+)"', help_html):   # elke link in de inhoudsopgave heeft een kopje
+            self.assertIn(f'id="{href}"', help_html)
+        for must in ("Rondom mij", "Langs een route", "Aanrader", "Referentie", "Waarde van je tijd",
+                     "Wanneer ligt een station op de route", "Zoekstraal", "Max. extra tijd", "Aantal resultaten",
+                     "Praktijkfactor", "Eigen verbruik", "Kenteken", "Tankerk", "Cache wissen", "OSRM", "Max. afstand",
+                     "Vaste adressen", "Telefoon-tracker", "Locatie opzoeken bij openen"):
+            self.assertIn(must, help_html)
+        # elke instelling in het menu heeft een uitleg in de help: de labels van het menu staan er (deels) in
+        drawer = body[body.index('id="drawer"'):body.index('id="helpdlg"')]
+        for label in re.findall(r"<span>([^<]+)</span>", drawer):
+            word = label.split(" (")[0]
+            self.assertIn(word, help_html, f"geen uitleg voor '{label}' in de help")
 
     def test_serves_app_icon(self):
         status, body, resp = self.call("GET", "/icon.svg")

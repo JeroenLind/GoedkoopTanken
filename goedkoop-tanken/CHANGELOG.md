@@ -1,6 +1,7 @@
 # Wijzigingen
 
 ## Nog niet uitgebracht
+- Nieuw helpmenu (knop Help bovenaan): uitleg over rondom mij en langs een route, het resultaat, de berekening en alle instellingen met hun effect.
 - Het instellingenmenu toont bij het thuisadres en de vaste adressen alleen nog het adres, niet meer de coördinaten.
 - Nieuwe aanrader: de extra rijtijd telt mee tegen de waarde van je tijd (standaard € 15 per uur, instelbaar; 0 = alleen op prijs). De lijst blijft op prijs gesorteerd, maar de groene markering gaat naar de aanrader. Het grote resultaat heeft nu een knop Navigeer en noemt het goedkoopste station als dat niet de aanrader is.
 - De referentie voor de besparing is het goedkoopste station op de route; in de instellingen kies je of dat op afstand (standaard minder dan 0,5 km omweg) of op tijd (standaard minder dan 3 minuten) wordt bepaald, en beide grenzen zijn instelbaar. Dezelfde regels gelden bij zoeken rondom een locatie.
