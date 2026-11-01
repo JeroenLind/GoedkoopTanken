@@ -1,6 +1,8 @@
 # Wijzigingen
 
 ## Nog niet uitgebracht
+- Nieuwe aanrader: de extra rijtijd telt mee tegen de waarde van je tijd (standaard € 15 per uur, instelbaar; 0 = alleen op prijs). De lijst blijft op prijs gesorteerd, maar de groene markering gaat naar de aanrader. Het grote resultaat heeft nu een knop Navigeer en noemt het goedkoopste station als dat niet de aanrader is.
+- De referentie voor de besparing is het goedkoopste station op de route; in de instellingen kies je of dat op afstand (standaard minder dan 0,5 km omweg) of op tijd (standaard minder dan 3 minuten) wordt bepaald, en beide grenzen zijn instelbaar. Dezelfde regels gelden bij zoeken rondom een locatie.
 - Het overzicht boven de resultaten toont geen gegevens over de auto meer (naam, brandstof, verbruik); het verbruik staat nog wel in de berekening per station.
 - Langs een route zijn extra kilometers en minuten gemeten ten opzichte van de snelste route; dat staat nu ook zo in de uitleg, en het detailpaneel toont de omweg in minuten én kilometers, met de lengte en rijtijd van de snelste route zelf. Export en API vermelden de referentieroute.
 - Nieuwe naam en uiterlijk: overal "Goedkoop tanken", met een groen pictogram (druppel met pijl omlaag) in de app, het tabblad en de add-on, en een nieuw kleurenpalet. Op een breed scherm staat de kaart met het detail naast de lijst. Technisch heet het pakket nu `goedkooptanken`.

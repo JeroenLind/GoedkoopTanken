@@ -55,6 +55,10 @@ class Result:
     extra_min_vs_baseline: int = 0  # = min_round_trip - die van het dichtstbijzijnde station
     is_baseline: bool = False
     km_to_station: float | None = None  # alleen bij een route: rijafstand vertrek -> station
+    time_min: int = 0  # extra rijtijd in minuten waarmee `time_cost` is berekend
+    time_cost: float = 0.0  # extra rijtijd x waarde van je tijd, in hele centen
+    effective_total: float = 0.0  # total + time_cost: waarop de aanrader gekozen wordt
+    is_recommended: bool = False  # de aanrader: laagste effective_total
 
     @property
     def km_round_trip(self) -> float:

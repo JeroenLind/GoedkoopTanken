@@ -36,8 +36,14 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-3 | Brandstof en verbruik kunnen uit het kenteken komen (RDW); de gebruiker kan brandstof en verbruik ook zelf opgeven. | Jeroen | Klaar |
 | FR-4 | De gebruiker wil maar beperkt omrijden: er is een instelbare tijdlimiet voor extra rijtijd (0 = geen limiet). | Jeroen | Klaar |
 | FR-5 | Afstanden en rijtijden komen uit een routeserver (OSRM); adressen worden opgezocht via Nominatim. Is routering niet beschikbaar, dan schat de app, en toont dat. | Jeroen | Klaar |
-| FR-6 | Het resultaat toont de beste stations met prijs, tankkosten, omrit, totaal en besparing ten opzichte van een referentiestation (het dichtstbijzijnde, of bij een route het station met de kleinste omweg). | Jeroen | Klaar |
+| FR-6 | Het resultaat toont de beste stations met prijs, tankkosten, omrit, totaal en besparing ten opzichte van een referentiestation (het goedkoopste station dat op de route ligt of het dichtstbijzijnde is; zie FR-43). | Jeroen | Klaar |
 | FR-7 | Prijzen worden lokaal gecachet. Valt een bron uit, dan gebruikt de app oudere gegevens met een duidelijke melding. | Jeroen | Klaar |
+| FR-41 | De gebruiker stelt in de app in wat een uur van zijn tijd waard is (standaard € 15 per uur; 0 = alleen op prijs kiezen). De extra rijtijd telt mee als kosten. Een minimale besparing als drempel komt er niet. | Jeroen | Klaar |
+| FR-42 | De aanrader is het station met de laagste totaalkosten inclusief tijd (totaal + extra minuten × waarde per uur / 60). De lijst blijft op prijs (totaal in euro) gesorteerd; de groene markering gaat naar de aanrader en staat dus niet altijd bovenaan. Is het goedkoopste station niet de aanrader, dan zegt het resultaat hoeveel goedkoper het is en hoeveel minuten extra rijden dat kost. | Jeroen | Klaar |
+| FR-43 | De referentie voor de besparing is het goedkoopste station dat "op de route" ligt. Liggen er meer, dan telt de goedkoopste. Ligt er geen binnen de grens, dan is het station met de kleinste omweg de referentie. | Jeroen | Klaar |
+| FR-44 | De gebruiker kiest in de instellingen of "op de route" op afstand (standaard: omweg minder dan 0,5 km) of op tijd (standaard: minder dan 3 minuten extra) wordt bepaald; beide grenzen zijn instelbaar. | Jeroen | Klaar |
+| FR-45 | Het grote resultaat met het beste station heeft een knop "Navigeer" naar de aanrader, zodat de gebruiker niet in de lijst hoeft te zoeken. | Jeroen | Klaar |
+| FR-46 | Bij zoeken rondom een locatie gelden dezelfde regels (FR-41 tot FR-44), met het dichtstbijzijnde station als uitgangspunt: de extra rit is het verschil met dat station. | Jeroen | Klaar |
 
 ### 3.2 Zoeken langs een route
 
@@ -48,7 +54,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-10 | De bestemming kan als adres worden getypt of op een kaart worden gekozen. | Jeroen | Klaar |
 | FR-11 | Vertrek en bestemming kunnen worden omgedraaid (voor de terugweg). | Jeroen | Klaar |
 | FR-12 | Bij een route kan de gebruiker een maximaal te rijden afstand invullen (rijafstand van het vertrek naar het station), voor het geval de tank bijna leeg is. Stations die verder weg liggen vallen af. | Jeroen | Klaar |
-| FR-38 | Bij zoeken langs een route is de snelste route van vertrek naar bestemming de referentie voor alle extra kilometers en minuten (issue #2); een kortste-routeoptie komt er niet. Het detailpaneel toont zowel de besparing ten opzichte van het station met de kleinste omweg als de omweg (km en minuten) ten opzichte van de snelste route, met de lengte en rijtijd van die snelste route zelf; export en API vermelden dat de referentie de snelste route is; in de tabel komt geen extra kolom (nog te beoordelen na gebruik). Verkeer valt hier buiten (issue #1). | Jeroen | Klaar |
+| FR-38 | Bij zoeken langs een route is de snelste route van vertrek naar bestemming de referentie voor alle extra kilometers en minuten (issue #2); een kortste-routeoptie komt er niet. Het detailpaneel toont zowel de besparing ten opzichte van de referentie (FR-43) als de omweg (km en minuten) ten opzichte van de snelste route, met de lengte en rijtijd van die snelste route zelf; export en API vermelden dat de referentie de snelste route is; in de tabel komt geen extra kolom (nog te beoordelen na gebruik). Verkeer valt hier buiten (issue #1). | Jeroen | Klaar |
 | FR-39 | De actuele verkeerssituatie telt mee in beide modi (rond een locatie en langs een route; issue #1). De vertraging door verkeer staat apart naast de minuten, bijvoorbeeld "14 min (+5 min file)", in het detailpaneel en in de export. Zonder sleutel, of als de verkeersdienst uitvalt, rekent de app met OSRM zonder verkeer en toont daarbij een melding: verkeer is optioneel. De keuze van de dienst is aan Claude (voorstel: O-8). | Jeroen | Gepland |
 
 ### 3.3 Vaste adressen

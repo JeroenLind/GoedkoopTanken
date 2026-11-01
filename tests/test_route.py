@@ -84,7 +84,8 @@ class RouteServiceTests(unittest.TestCase):
         self.assertNotIn("ANWB-3", names)               # 25 km ernaast: buiten de corridor
         self.assertEqual(out.results[0].station.name, "ANWB-2")
         base = out.baseline
-        self.assertEqual(base.station.name, "ANWB-1")   # kleinste omweg
+        # ANWB-4 en ANWB-1 liggen allebei binnen 0,5 km van de route; ANWB-4 is de goedkoopste daarvan
+        self.assertEqual(base.station.name, "ANWB-4")
         self.assertLess(base.km_round_trip, 0.5)
         self.assertGreater(out.results[0].km_round_trip, 2.0)   # extra km t.o.v. de snelste route
         self.assertEqual(out.results[0].saving_vs_baseline,

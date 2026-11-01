@@ -49,6 +49,21 @@ class ExportTests(unittest.TestCase):
     def by_name(self, data):
         return {r["name"]: r for r in data["stations"]}
 
+    def test_export_and_web_rows_carry_the_recommendation(self):
+        from goedkooptanken import web
+        out = self.route()
+        data = service.export_data(out)
+        self.assertEqual(data["query"]["time_value_eur_per_hour"], 15.0)
+        self.assertEqual(data["query"]["near"], {"mode": "distance", "max_km": 0.5, "max_min": 3.0})
+        shown = [r["result"] for r in data["stations"] if r["status"] == "getoond in de uitkomst"]
+        self.assertEqual(sum(r["is_recommended"] for r in shown), 1)
+        for r in shown:
+            self.assertAlmostEqual(r["effective_total"], r["total"] + r["time_cost"], places=2)
+        payload = web.serialize(out, 10)
+        self.assertEqual(payload["time_value"], 15.0)
+        self.assertEqual(payload["near"]["mode"], "distance")
+        self.assertEqual(sum(r["is_recommended"] for r in payload["results"]), 1)
+
     def test_export_explains_what_happened_to_each_station(self):
         out = self.route()
         data = service.export_data(out)
