@@ -2,7 +2,7 @@
 
 Zoekt het goedkoopste tankstation **inclusief de kosten van de omrit en de extra rijtijd**, over de grens
 heen (Nederland, Duitsland en België). Je gebruikt het als **Home Assistant-add-on** (in de zijbalk) of
-op je laptop als gewone webapp. Versies die met `0.` beginnen zijn testversies.
+op je laptop als gewone webapp (zie [Zelf draaien](#zelf-draaien-zonder-home-assistant) onderaan). Versies die met `0.` beginnen zijn testversies.
 
 Twee manieren van zoeken: **rondom mij** (waar tank ik het voordeligst vanaf hier?) en **langs een route**
 (waar tank ik onderweg van A naar B?). In de app legt het menu **Help** alles uit: het bedoelde gebruik,
@@ -29,43 +29,6 @@ Dit is een testversie en feedback is welkom. Meld een probleem, een uitkomst die
 [GitHub Issues](https://github.com/JeroenLind/GoedkoopTanken/issues/new/choose). Noem de versie van de add-on, of je rondom
 jezelf of langs een route zocht, en voeg zo mogelijk de download *Download alle data* onderaan het resultaat toe.
 Haal daarin vooraf je thuisadres weg als je dat niet wilt delen.
-
-## Starten op je laptop
-
-Vereist Python 3.11+. Geen pakketten installeren nodig.
-
-```
-cp config.example.toml config.toml     # pas thuislocatie en kenteken aan
-python -m goedkooptanken check             # test alle bronnen (doe dit eerst!)
-python -m goedkooptanken vehicle AB-123-C  # wat weet de RDW over je auto?
-python -m goedkooptanken find -v           # het eigenlijke zoeken
-python -m goedkooptanken find --fuel diesel --consumption 5.5 --fill 50 --address "Straat 1, Plaats"
-```
-
-Voor Duitse prijzen heb je een gratis key nodig van https://creativecommons.tankerkoenig.de
-(in `config.toml` of als omgevingsvariabele `TANKERKOENIG_API_KEY`).
-
-## Webinterface
-
-```
-python -m goedkooptanken web          # opent http://127.0.0.1:8080 in je browser
-python -m goedkooptanken web --port 9000 --no-browser
-```
-
-Op de hoofdpagina kies je **Rondom mij** of **Langs een route**, vul je de locatie (en bij een route de
-bestemming) en het aantal liters in, en kies je **Bereken**. Met **Mijn locatie** gebruikt de app je apparaat
-(de browser vraagt eerst toestemming); in het menu kun je dat ook automatisch bij het openen laten doen.
-Lukt het niet, dan gebruik je **Thuis** of typ je zelf een adres. De rit heen en terug wordt
-berekend vanaf die locatie. Alle andere instellingen (thuisadres, auto, zoekstraal, tijdlimiet,
-waarde van je tijd, bronnen, routering) staan achter de hamburgerknop linksboven. **Bereken** gebruikt wat er op dat moment
-in het formulier staat (ook zonder opslaan). **Instellingen opslaan** schrijft
-naar `config.toml`, dezelfde instellingen die de opdrachtregel gebruikt. Opmerkingen in een met de
-hand geschreven `config.toml` blijven niet behouden zodra je via de webinterface opslaat.
-
-Beveiliging: de server luistert alleen op `127.0.0.1` en is dus niet bereikbaar vanaf je netwerk. Hij
-bewaart je Tankerkönig-key en heeft geen inlog; zet hem daarom niet open naar het netwerk zonder
-eerst authenticatie toe te voegen. De API-key wordt nooit naar de browser teruggestuurd. Omdat
-`config.toml` die key bevat staat het in `.gitignore`; commit dat bestand niet.
 
 ## Langs een route zoeken
 
@@ -217,3 +180,45 @@ draait nog steeds op je laptop met `python -m goedkooptanken web`.
   `.github/workflows/release.yaml` test, bouwt aarch64 + amd64 en publiceert naar `ghcr.io`. Een gewone push maakt
   nooit een release. Tags `v0.*` worden als pre-release gemarkeerd. De stappen staan in `GITHUB-STAPPEN.md`.
 - Licentie: GPL v3 (`LICENSE`).
+
+## Zelf draaien zonder Home Assistant
+
+De app is gemaakt als Home Assistant-add-on, maar draait ook los op je laptop of een server. Vereist Python 3.11+.
+
+### Starten met de opdrachtregel
+
+Geen pakketten installeren nodig.
+
+```
+cp config.example.toml config.toml     # pas thuislocatie en kenteken aan
+python -m goedkooptanken check             # test alle bronnen (doe dit eerst!)
+python -m goedkooptanken vehicle AB-123-C  # wat weet de RDW over je auto?
+python -m goedkooptanken find -v           # het eigenlijke zoeken
+python -m goedkooptanken find --fuel diesel --consumption 5.5 --fill 50 --address "Straat 1, Plaats"
+```
+
+Voor Duitse prijzen heb je een gratis key nodig van https://creativecommons.tankerkoenig.de
+(in `config.toml` of als omgevingsvariabele `TANKERKOENIG_API_KEY`).
+
+### Webinterface
+
+```
+python -m goedkooptanken web          # opent http://127.0.0.1:8080 in je browser
+python -m goedkooptanken web --port 9000 --no-browser
+```
+
+Op de hoofdpagina kies je **Rondom mij** of **Langs een route**, vul je de locatie (en bij een route de
+bestemming) en het aantal liters in, en kies je **Bereken**. Met **Mijn locatie** gebruikt de app je apparaat
+(de browser vraagt eerst toestemming); in het menu kun je dat ook automatisch bij het openen laten doen.
+Lukt het niet, dan gebruik je **Thuis** of typ je zelf een adres. De rit heen en terug wordt
+berekend vanaf die locatie. Alle andere instellingen (thuisadres, auto, zoekstraal, tijdlimiet,
+waarde van je tijd, bronnen, routering) staan achter de hamburgerknop linksboven. **Bereken** gebruikt wat er op dat moment
+in het formulier staat (ook zonder opslaan). **Instellingen opslaan** schrijft
+naar `config.toml`, dezelfde instellingen die de opdrachtregel gebruikt. Opmerkingen in een met de
+hand geschreven `config.toml` blijven niet behouden zodra je via de webinterface opslaat.
+
+Beveiliging: de server luistert alleen op `127.0.0.1` en is dus niet bereikbaar vanaf je netwerk. Hij
+bewaart je Tankerkönig-key en heeft geen inlog; zet hem daarom niet open naar het netwerk zonder
+eerst authenticatie toe te voegen. De API-key wordt nooit naar de browser teruggestuurd. Omdat
+`config.toml` die key bevat staat het in `.gitignore`; commit dat bestand niet.
+
