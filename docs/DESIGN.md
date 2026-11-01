@@ -544,6 +544,13 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 - **Reden:** Home Assistant laadt een relatief pad vanuit de repository niet; een absolute adres wel. De kaart staat uit, omdat de kaartbeelden anders van een externe dienst komen.
 - **Let op:** de afbeeldingen komen van `main`. Verandert de interface, dan zijn ze verouderd en moeten ze opnieuw gemaakt worden; er is geen script in de repository dat dat doet. Of Home Assistant de afbeeldingen toont is nog niet gecontroleerd.
 
+### D-30. Knop "Toevoegen aan Home Assistant" en meldingssjabloon
+
+- **Besluit door:** Jeroen (ja op het voorstel), Claude (uitwerking). **Eisen:** FR-50.
+- **Keuze:** de README gebruikt de standaardknop van `my.home-assistant.io` (`supervisor_add_addon_repository`) met de repository-URL; `.github/ISSUE_TEMPLATE/probleem.md` vraagt om wat er gebeurde, de plek van het zoeken, de versie en de download van alle data.
+- **Reden:** minder stappen voor een nieuwe gebruiker en bruikbaardere meldingen. De knop is een gewone link naar een dienst van Home Assistant; de app zelf maakt geen verbinding ermee.
+- **Afgewezen / niet onderbouwd:** een meldingsformulier in de app zelf (niet besproken). Of de knop bij elke Home Assistant-installatie werkt (afhankelijk van de instelling "My Home Assistant" van de gebruiker) is niet gecontroleerd.
+
 ## 9. Traceerbaarheid: eisen naar ontwerp
 
 | Eis | Ontwerpkeuze | Modules en tests |
@@ -555,6 +562,7 @@ Elke beslissing heeft een context, een keuze, redenen en afgewezen alternatieven
 | FR-5 Routering en adressen | D-6 | `routing.py`, `geo.py`; `test_all.py` |
 | FR-6 Resultaat en besparing | D-4, D-27 | `calc.py`, `web.serialize`; `test_web.py` |
 | FR-7 Prijscache | D-9, D-10 | `cache.py`; `test_cache.py` |
+| FR-50 Knop toevoegen en meldingssjabloon | D-30 | `README.md`, `.github/ISSUE_TEMPLATE/probleem.md` |
 | FR-49 Informatiepagina add-on | D-29 | `goedkoop-tanken/README.md`, `docs/screenshots/`; `test_addon.py` |
 | FR-48 Helpmenu | D-28 | `static/index.html` (`#helpdlg`); `test_web.py` |
 | FR-41 t/m FR-46 Aanrader, tijdwaarde, referentie en Navigeer | D-27 | `calc.mark_recommended`, `calc.pick_reference`, `config.py`, `service.py`, `web.serialize`, `static/index.html`; `test_recommend.py`, `test_route.py` |

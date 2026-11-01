@@ -10,6 +10,10 @@ het resultaat, de berekening en alle instellingen.
 
 ## Installeren als Home Assistant-add-on
 
+[![Voeg de repository toe aan je Home Assistant.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FJeroenLind%2FGoedkoopTanken)
+
+Met de knop hierboven voeg je de repository met één klik toe aan je Home Assistant. Of doe het met de hand:
+
 1. Ga in Home Assistant naar *Instellingen, Add-ons, Add-on-winkel, Repositories* en voeg
    `https://github.com/JeroenLind/GoedkoopTanken` toe.
 2. Installeer **Goedkoop tanken** uit de winkel en start de add-on. Hij verschijnt in de zijbalk.
@@ -18,6 +22,13 @@ het resultaat, de berekening en alle instellingen.
 
 Het image wordt via GitHub gebouwd en gepubliceerd; je hoeft zelf niets te bouwen. Zie hieronder
 voor testen zonder GitHub en voor het maken van een release.
+
+## Feedback en problemen melden
+
+Dit is een testversie en feedback is welkom. Meld een probleem, een uitkomst die niet klopt of een idee via
+[GitHub Issues](https://github.com/JeroenLind/GoedkoopTanken/issues/new/choose). Noem de versie van de add-on, of je rondom
+jezelf of langs een route zocht, en voeg zo mogelijk de download *Download alle data* onderaan het resultaat toe.
+Haal daarin vooraf je thuisadres weg als je dat niet wilt delen.
 
 ## Starten op je laptop
 

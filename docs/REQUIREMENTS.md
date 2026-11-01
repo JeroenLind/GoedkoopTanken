@@ -109,6 +109,7 @@ Versie 1 beperkt de koppeling met Home Assistant tot de web-interface in de zijb
 | FR-36 | Het pictogram is een groene afgeronde tegel met een witte brandstofdruppel en een pijl omlaag. De huisstijl is groen (#1D9E75, voor tekst en knoppen donkerder: #0F7A58), marineblauw (#1E3A5F) en oranje (#F28C28, alleen als accent). Het pictogram staat in de interface, als tabbladpictogram en als pictogram van de add-on. | Jeroen | Klaar |
 | FR-48 | De app heeft een uitgebreid helpmenu (knop "Help" in de kop) voor nieuwe gebruikers: wat de app doet, snel starten, het bedoelde gebruik van zoeken rondom mij en langs een route, het lezen van het resultaat, hoe er gerekend wordt, alle instellingen met hun effect, tips bij problemen en privacy. Elke instelling in het menu staat in de help. | Jeroen | Klaar |
 | FR-49 | De informatiepagina van de add-on in Home Assistant bevat een korte beschrijving van wat de app doet en een screenshot van de app (met voorbeeldgegevens, als zodanig vermeld). | Jeroen | Klaar |
+| FR-50 | De README heeft een knop waarmee een gebruiker de repository met één klik aan zijn Home Assistant toevoegt, en een korte uitleg hoe hij een probleem of idee meldt; er is een sjabloon voor meldingen op GitHub. | Jeroen | Klaar |
 | FR-37 | Op een breed scherm staat de lijst met stations links en de kaart met het detail van het gekozen station rechts, zoals in de mockup; op een telefoon blijft het één kolom. | Jeroen | Klaar |
 
 ## 4. Niet-functionele eisen
